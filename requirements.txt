@@ -1,0 +1,8 @@
+evolution-resectioning==1.2.3
+opencv-python==4.5.2.52
+nlopt==2.7.0
+black==21.5b1
+loguru==0.5.3
+jupyterlab==3.0.16
+pandas==1.2.4
+matplotlib==3.4.2

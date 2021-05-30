@@ -1,0 +1,7 @@
+.ipynb_checkpoints/
+.vscode/vscode-kanban.json
+**/__pycache__/
+
+*.bak
+*.log
+*.ods

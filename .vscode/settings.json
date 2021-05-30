@@ -1,0 +1,40 @@
+{
+    "coloredRegions": {
+        "namedColors": {
+            "ImportColor": "rgba(255, 255, 255, 0.1)",
+            "Region0": "rgba(149, 125, 173, 0.1)",
+            "Region1": "rgba(210, 145, 188, 0.1)",
+            "Region2": "rgba(254, 200, 216, 0.1)",
+            "Region3": "rgba(181, 234, 215, 0.1)",
+            "Region4": "rgba(226, 240, 203, 0.1)",
+            "TMP": "rgba(128, 0, 0, 0.5)"
+        }
+    },
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+    "python.pythonPath": "/home/chris/Development/virtualenvironments/evolution-evaluation/bin/python",
+    "python.languageServer": "Jedi",
+    "python.formatting.provider": "black",
+    "editor.rulers": [
+        99,
+        120
+    ],
+    "python.formatting.blackArgs": [
+        "-l 99"
+    ],
+    "workbench.colorCustomizations": {
+        "editorRuler.foreground": "#ff40805e"
+    },
+    "cSpell.words": [
+        "NELDERMEAD",
+        "cvutils",
+        "dtype",
+        "imshow",
+        "nlopt",
+        "numpy"
+    ]
+}
