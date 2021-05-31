@@ -86,7 +86,7 @@ if __name__ == "__main__":
         BoundedDistributionBasedMutation(genome_parameters),
     ]
 
-    termination_strategies = [NoImprovement(5)]
+    termination_strategies = [NoImprovement(300)]
 
     noise_strategies = [
         NoNoise(),
