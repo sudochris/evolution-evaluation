@@ -1,66 +1,110 @@
+from abc import abstractmethod
+
 import cv2 as cv
 import numpy as np
+from evolution.base.base_strategies import Strategy
 
 
-def noise_salt(image: np.array, **kwargs) -> np.array:
-    """Creates salty noise with a given amount
+class NoiseStrategy(Strategy):
+    @abstractmethod
+    def generate_noise(self, image: np.array) -> np.array:
+        raise NotImplementedError
 
-    Args:
-        image (np.array): The image will be used to detive shape and calculate the absolute amount and the max noise value
-
-    Kwargs:
-        amount (float): The relative amount of salt to add (default: 0.004)
-
-    Returns:
-        np.array: Noise image with the specified amount of salt of same type as the input image
-    """
-    amount = kwargs.get("amount", 0.004)
-    n_salt = np.ceil(amount * image.size)
-
-    noise = np.zeros_like(image)
-    salt_value = np.iinfo(image.dtype).max
-
-    coordinates = tuple([np.random.randint(0, i - 1, int(n_salt)) for i in image.shape])
-    noise[coordinates] = salt_value
-    return noise
+    @abstractmethod
+    def get_value(self):
+        raise NotImplementedError
 
 
-def noise_hlines(image: np.array, **kwargs) -> np.array:
-    """Creates horizontal noise with a given spacing
+class NoNoise(NoiseStrategy):
+    def generate_noise(self, image: np.array) -> np.array:
+        noise = np.zeros_like(image)
+        return noise
 
-    Args:
-        image (np.array): The image will be used to derive shape and the max noise value
+    def printable_identifier(self):
+        return "no_noise"
 
-    Kwargs:
-        spacing (int): The spacing between lines in px (default: 32)
-
-    Returns:
-        np.array: Noise image with the specified horizontal lines of same type as the input image
-    """
-    spacing = kwargs.get("spacing", 32)
-    max_value = np.iinfo(image.dtype).max
-    noise = np.zeros_like(image)
-    noise[::spacing] = max_value
-    return noise
+    def get_value(self):
+        return 0
 
 
-def noise_vlines(image: np.array, **kwargs) -> np.array:
-    """Creates vertical noise with a given spacing
+class SaltNoise(NoiseStrategy):
+    def __init__(self, amount: float = 0.004) -> None:
+        super().__init__()
+        self.amount = amount
 
-    Args:
-        image (np.array): The image will be used to derive shape and the max noise value
+    def generate_noise(self, image: np.array) -> np.array:
+        """Creates salty noise with a given amount
 
-    Kwargs:
-        spacing (int): The spacing between lines in px (default: 32)
+        Args:
+            image (np.array): The image will be used to detive shape and calculate the absolute amount and the max noise value
 
-    Returns:
-        np.array: Noise image with the specified vertical lines of same type as the input image
-    """
-    spacing = kwargs.get("spacing", 32)
-    max_value = np.iinfo(image.dtype).max
-    noise = np.zeros_like(image)
-    noise[:, ::spacing] = max_value
-    return noise
+        Returns:
+            np.array: Noise image with the specified amount of salt of same type as the input image
+        """
+        n_salt = np.ceil(self.amount * image.size)
+
+        noise = np.zeros_like(image)
+        salt_value = np.iinfo(image.dtype).max
+
+        coordinates = tuple([np.random.randint(0, i - 1, int(n_salt)) for i in image.shape])
+        noise[coordinates] = salt_value
+        return noise
+
+    def printable_identifier(self):
+        return "salt"
+
+    def get_value(self):
+        return self.amount
+
+
+class HLinesNoise(NoiseStrategy):
+    def __init__(self, spacing: int = 32) -> None:
+        self.spacing = spacing
+
+    def generate_noise(self, image: np.array) -> np.array:
+        """Creates horizontal noise with a given spacing
+
+        Args:
+            image (np.array): The image will be used to derive shape and the max noise value
+
+        Returns:
+            np.array: Noise image with the specified horizontal lines of same type as the input image
+        """
+        max_value = np.iinfo(image.dtype).max
+        noise = np.zeros_like(image)
+        noise[:: self.spacing] = max_value
+        return noise
+
+    def printable_identifier(self):
+        return "hlines"
+
+    def get_value(self):
+        return self.spacing
+
+
+class VLinesNoise(NoiseStrategy):
+    def __init__(self, spacing: int = 32) -> None:
+        self.spacing = spacing
+
+    def generate_noise(self, image: np.array) -> np.array:
+        """Creates vertical noise with a given spacing
+
+        Args:
+            image (np.array): The image will be used to derive shape and the max noise value
+
+        Returns:
+            np.array: Noise image with the specified vertical lines of same type as the input image
+        """
+        max_value = np.iinfo(image.dtype).max
+        noise = np.zeros_like(image)
+        noise[:, :: self.spacing] = max_value
+        return noise
+
+    def printable_identifier(self):
+        return "vlines"
+
+    def get_value(self):
+        return self.spacing
 
 
 def _rotate_image(image: np.array, angle: float) -> np.array:
@@ -78,35 +122,43 @@ def _rotate_image(image: np.array, angle: float) -> np.array:
     return cv.warpAffine(image, R, image.shape[1::-1], flags=cv.INTER_LINEAR | cv.WARP_INVERSE_MAP)
 
 
-def noise_grid(image: np.array, **kwargs) -> np.array:
-    """Creates rotated grid noise with a given angle and vertical and horizontal spacing.
+class GridNoise(NoiseStrategy):
+    def __init__(self, hspacing: int = 32, vspacing: int = 32, angle: float = 0) -> None:
+        self.hspacing = hspacing
+        self.vspacing = vspacing
 
-    Args:
-        image (np.array): The image will be used to derive the max noise value
+        self.hlines_noise_strategy = HLinesNoise(hspacing)
+        self.vlines_noise_strategy = VLinesNoise(vspacing)
+        self.angle = angle
 
-    Kwargs:
-        hspacing (int): The horizontal grid spacing in px (default: 32)
-        vspacing (int): The vertical grid spacing in px (default: 32)
-        angle (float): The grid's rotation angle in degree (default: 0.0)
+    def generate_noise(self, image: np.array, **kwargs) -> np.array:
+        """Creates rotated grid noise with a given angle and vertical and horizontal spacing.
 
-    Returns:
-        np.array: The grid noise image
-    """
-    hspacing = kwargs.get("hspacing", 32)
-    vspacing = kwargs.get("vspacing", 32)
-    angle = kwargs.get("angle", 0)
-    h, w = image.shape[:2]
-    border = int(np.sqrt(w ** 2 + h ** 2) - h)
-    border_half = border // 2
-    expanded_image = cv.copyMakeBorder(image, border, 0, border, 0, cv.BORDER_CONSTANT)
-    # expanded_image = image
-    h_noise, v_noise = noise_hlines(expanded_image, spacing=hspacing), noise_vlines(
-        expanded_image, spacing=vspacing
-    )
-    noise = h_noise + v_noise
-    return _rotate_image(noise, angle)[
-        border_half : (h + border_half), border_half : (w + border_half)
-    ]
+        Args:
+            image (np.array): The image will be used to derive the max noise value
+
+        Returns:
+            np.array: The grid noise image
+        """
+        h, w = image.shape[:2]
+        border = int(np.sqrt(w ** 2 + h ** 2) - h)
+        border_half = border // 2
+        expanded_image = cv.copyMakeBorder(image, border, 0, border, 0, cv.BORDER_CONSTANT)
+        # expanded_image = image
+
+        h_noise = self.hlines_noise_strategy.generate_noise(expanded_image)
+        v_noise = self.vlines_noise_strategy.generate_noise(expanded_image)
+
+        noise = h_noise + v_noise
+        return _rotate_image(noise, self.angle)[
+            border_half : (h + border_half), border_half : (w + border_half)
+        ]
+
+    def printable_identifier(self):
+        return "straight_grid" if self.angle == 0 else "angled_grid"
+
+    def get_value(self):
+        return self.hlines_noise_strategy.get_value()
 
 
 def add_noise_to_image(original_image: np.array, noise_image: np.array) -> np.array:
@@ -124,28 +176,3 @@ def add_noise_to_image(original_image: np.array, noise_image: np.array) -> np.ar
     noisy_edge_image = original_image + noise_image
     noisy_edge_image = cv.threshold(noisy_edge_image, 0, 255, cv.THRESH_BINARY)[1].astype(np.uint8)
     return noisy_edge_image
-
-
-if __name__ == "__main__":
-    shape = (480, 640)
-    image = np.zeros(shape, dtype=np.uint8)
-
-    image_salt = noise_salt(image, amount=0.01)
-    image_noise_hlines = noise_hlines(image, spacing=128)
-    image_noise_vlines = noise_vlines(image, spacing=128)
-    image_noise_straight_grid = noise_grid(image, hspacing=128, vspacing=128, angle=0)
-    image_noise_angled_grid = noise_grid(image, hspacing=128, vspacing=128, angle=45)
-
-    full = add_noise_to_image(image_salt, image_noise_hlines)
-    full = add_noise_to_image(full, image_noise_vlines)
-    full = add_noise_to_image(full, image_noise_angled_grid)
-
-    cv.imshow("image", image)
-
-    cv.imshow("noise_salt 0.01", image_salt)
-    cv.imshow("noise_hlines 128", image_noise_hlines)
-    cv.imshow("noise_vlines 128", image_noise_vlines)
-    cv.imshow("noise_grid 128 0deg", image_noise_straight_grid)
-    cv.imshow("noise_grid 128 45deg", image_noise_angled_grid)
-    cv.imshow("full", full)
-    cv.waitKey(0)

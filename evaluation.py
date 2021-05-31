@@ -1,10 +1,8 @@
 # region [ImportColor] Import
-from typing import Tuple
 
 import cv2 as cv
 import nlopt
 import numpy as np
-from evolution.base import DenseGeometry, PlaneGeometry, SelectionStrategy
 from evolution.camera import (
     CameraGenomeFactory,
     CameraGenomeParameters,
@@ -13,13 +11,17 @@ from evolution.camera import (
     render_geometry_with_camera,
 )
 from evolution.strategies import (
+    BoundedDistributionBasedMutation,
     BoundedUniformMutation,
     DistanceMap,
     DistanceMapWithPunishment,
     NoImprovement,
+    RouletteWheel,
+    SinglePoint,
     StrategyBundle,
     Tournament,
     TwoPoint,
+    Uniform,
     ValueUniformPopulation,
 )
 from loguru import logger
@@ -27,78 +29,16 @@ from loguru import logger
 from cameras.cameras import Amount, Camera, mean_squash_camera, wiggle_camera
 from optimizer.evolution_optimizer import EvolutionOptimizer
 from optimizer.nlopt_optimizer import NloptAlgorithms, NloptOptimizer
+from scripts.evaluate_evolution import evaluate_evolutions
 from utils.color_utils import Color
 from utils.error_utils import (
     ReprojectionErrorResult,
     reprojection_error,
     reprojection_error_multiple_geometries,
 )
-from utils.noise_utils import add_noise_to_image, noise_hlines, noise_salt
+from utils.noise_utils import GridNoise, HLinesNoise, NoNoise, SaltNoise, VLinesNoise
 from utils.persistence_utils import EvolutionResultWriter, NloptResultWriter, ResultWriter
 from utils.transform_utils import split_dna
-
-# endregion
-
-
-# region [TMP]
-
-if __name__ == "__main222__":
-
-    start_camera = target_camera = result_camera = mean_squash_camera((800, 600))
-    noise_type = "h_lines"
-    noise_value = 128
-
-    fitting_result = dense_result = y0_result = ReprojectionErrorResult(
-        np.zeros(1), np.zeros(1), np.zeros(1), np.zeros(1), 0, 0, 0
-    )
-
-    population_strategy = ValueUniformPopulation(start_camera.dna, 8)
-    fitness_strategy = DistanceMapWithPunishment(DistanceMap.DistanceType.L2, 0.3)
-    selection_strategy = Tournament(4)
-    crossover_strategy = TwoPoint()
-
-    parameters_file = "data/squash/parameters.json"
-    image_shape = (600, 800)
-    genome_parameters = CameraGenomeParameters(parameters_file, image_shape)
-    mutation_strategy = BoundedUniformMutation(genome_parameters)
-    termination_strategy = NoImprovement(300)
-
-    strategy_bundle = StrategyBundle(
-        population_strategy,
-        fitness_strategy,
-        selection_strategy,
-        crossover_strategy,
-        mutation_strategy,
-        termination_strategy,
-    )
-
-    evolution_writer.save_experiment(
-        strategy_bundle,
-        Amount.near(),
-        start_camera,
-        target_camera,
-        result_camera,
-        noise_type,
-        noise_value,
-        fitting_result,
-        dense_result,
-        y0_result,
-        1337.4711,
-        10023,
-    )
-    nlopt_writer.save_experiment(
-        "LN_SUBPLX",
-        Amount.far(),
-        start_camera,
-        target_camera,
-        result_camera,
-        noise_type,
-        noise_value,
-        fitting_result,
-        dense_result,
-        y0_result,
-    )
-
 
 # endregion
 
@@ -107,6 +47,85 @@ if __name__ == "__main__":
     # region [Region0] (A) General application and logging setup
     fmt = "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}"
     logger.add("application.log", rotation="20 MB", format=fmt)
+    # endregion
+
+    # region [Region1] (B) General experiment setup
+
+    parameters_file = "data/squash/parameters.json"
+    geometry_file = "data/squash/geometries/squash_court.obj"
+    evolution_results_file = "results/evolution_experiments_dev.csv"
+
+    image_shape = (600, 800)
+    genome_parameters = CameraGenomeParameters(parameters_file, image_shape)
+    fitting_geometry = ObjGeometry(geometry_file)
+    # endregion
+
+    # region [Region2] (C) Define lists for constructing strategy bundles
+    amounts = [Amount.near(), Amount.medium(), Amount.far()]
+    population_strategies = [
+        lambda start_dna: ValueUniformPopulation(start_dna, 8),
+        lambda start_dna: ValueUniformPopulation(start_dna, 16),
+    ]
+
+    fitness_strategies = [
+        DistanceMapWithPunishment(DistanceMap.DistanceType.L2, 0.3),
+        DistanceMap(DistanceMap.DistanceType.L2, 0.3),
+    ]
+
+    selection_strategies = [Tournament(4), Tournament(8), RouletteWheel()]
+
+    crossover_strategies = [
+        SinglePoint(),
+        TwoPoint(),
+        Uniform(np.ones(15) * 0.01, "_0.01"),
+        Uniform(np.ones(15) * 0.5, "_0.5"),
+    ]
+
+    mutation_strategies = [
+        BoundedUniformMutation(genome_parameters),
+        BoundedDistributionBasedMutation(genome_parameters),
+    ]
+
+    termination_strategies = [NoImprovement(5)]
+
+    noise_strategies = [
+        NoNoise(),
+        SaltNoise(0.01),
+        HLinesNoise(spacing=128),
+        VLinesNoise(spacing=128),
+        GridNoise(hspacing=128, vspacing=128, angle=0),
+        GridNoise(hspacing=128, vspacing=128, angle=45),
+    ]
+    # endregion
+
+    # region [Region3] Perform Evolution experiments
+    evaluate_evolutions(
+        image_shape,
+        genome_parameters,
+        fitting_geometry,
+        amounts,
+        population_strategies,
+        fitness_strategies,
+        selection_strategies,
+        crossover_strategies,
+        mutation_strategies,
+        termination_strategies,
+        noise_strategies,
+        evolution_results_file,
+        append_mode=False,
+        runs_per_bundle=32,
+        headless=False,
+    )
+
+    # endregion
+
+    exit(0)
+
+    # region [Region4] Perform Nlopt experiments
+    # endregion
+
+    # region [TMP]
+    ################################################################################### EOF
     # endregion
 
     # region [Region1] (B) Experiment Parameters
@@ -183,7 +202,7 @@ if __name__ == "__main__":
     # endregion
 
     nlopt_algorithm = NloptAlgorithms.L_SBPLX
-    run_nlopt, run_evo = True, True
+    run_nlopt, run_evo = False, False
 
     headless = True
 
@@ -192,8 +211,8 @@ if __name__ == "__main__":
     geometry_y0 = PlaneGeometry(geometry, 0, 16)
     # endregion
 
-    evolution_writer: ResultWriter = EvolutionResultWriter("results/evo.csv", append_mode=False)
-    nlopt_writer: ResultWriter = NloptResultWriter("results/nlopt.csv", append_mode=False)
+    #    evolution_writer: ResultWriter = EvolutionResultWriter("results/evo.csv", append_mode=False)
+    #    nlopt_writer: ResultWriter = NloptResultWriter("results/nlopt.csv", append_mode=False)
     logger.warning("Result writer is OVERWRITING previous results!")
 
     # 4. Perform optimization experiments

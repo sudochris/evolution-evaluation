@@ -12,6 +12,7 @@ from loguru import logger
 
 from utils.error_utils import ReprojectionErrorResult
 from utils.exceptions import HeaderValueMismatch, InvalidHeader
+from utils.noise_utils import NoiseStrategy
 
 
 class ResultWriter(ABC):
@@ -134,8 +135,7 @@ class EvolutionResultWriter(ResultWriter):
         start_camera: Camera,
         target_camera: Camera,
         result_camera: Camera,
-        noise_type: str,
-        noise_value: float,
+        noise_strategy: NoiseStrategy,
         fitting_result: ReprojectionErrorResult,
         dense_result: ReprojectionErrorResult,
         y0_result: ReprojectionErrorResult,
@@ -150,8 +150,8 @@ class EvolutionResultWriter(ResultWriter):
             "mutation_fn": strategy_bundle.mutation_strategy.printable_identifier(),
             "termination_fn": strategy_bundle.termination_strategy.printable_identifier(),
             "distance_type": distance_amount.name,
-            "noise_type": noise_type,
-            "noise_value": noise_value,
+            "noise_type": noise_strategy.printable_identifier(),
+            "noise_value": noise_strategy.get_value(),
             "best_fitness": best_fitness,
             "generations": generations,
         }
@@ -212,8 +212,7 @@ class NloptResultWriter(ResultWriter):
         start_camera: Camera,
         target_camera: Camera,
         result_camera: Camera,
-        noise_type: str,
-        noise_value: float,
+        noise_strategy: NoiseStrategy,
         fitting_result: ReprojectionErrorResult,
         dense_result: ReprojectionErrorResult,
         y0_result: ReprojectionErrorResult,
@@ -222,8 +221,8 @@ class NloptResultWriter(ResultWriter):
         new_row = {
             "nlopt_optimizer": nlopt_optimizer,
             "distance_type": distance_amount.name,
-            "noise_type": noise_type,
-            "noise_value": noise_value,
+            "noise_type": noise_strategy.printable_identifier(),
+            "noise_value": noise_strategy.get_value(),
             "best_fitness": best_fitness,
         }
 
