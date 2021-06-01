@@ -83,7 +83,21 @@ class EvolutionEvaluator(Evaluator):
             termination_strategy,
             noise_strategy,
         ) in itertools.product(*strategies):
-            for _ in range(runs_per_bundle):
+
+            n_performed_experiments = self._evolution_writer.has(
+                amount,
+                population_strategy(np.zeros(15)),
+                fitness_strategy,
+                selection_strategy,
+                crossover_strategy,
+                mutation_strategy,
+                noise_strategy,
+            )
+            if n_performed_experiments > 0:
+                logger.info(
+                    f"Found {n_performed_experiments} experiments {runs_per_bundle-n_performed_experiments} missing."
+                )
+            for _ in range(n_performed_experiments, runs_per_bundle):
                 start_camera = wiggle_camera(
                     self._target_camera, amount, self._wiggle_indices, self._n_wiggles
                 )

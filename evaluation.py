@@ -90,7 +90,7 @@ if __name__ == "__main__":
         BoundedDistributionBasedMutation(genome_parameters),
     ]
 
-    termination_strategies = [NoImprovement(300)]
+    termination_strategies = [NoImprovement(5)]
 
     noise_strategies = [
         NoNoise(),
@@ -103,13 +103,13 @@ if __name__ == "__main__":
     # endregion
 
     # region [TMP]
-    run_evolution, run_nlopt = False, True
+    run_evolution, run_nlopt = True, False
     # endregion
 
     # region [Region3] Perform Evolution experiments
     if run_evolution:
         evaluator = EvolutionEvaluator(
-            image_shape, genome_parameters, evolution_results_file, append_mode=False
+            image_shape, genome_parameters, evolution_results_file, append_mode=True
         )
         evaluator.evaluate(
             fitting_geometry,
@@ -121,7 +121,7 @@ if __name__ == "__main__":
             mutation_strategies,
             termination_strategies,
             noise_strategies,
-            runs_per_bundle=1,
+            runs_per_bundle=32,
             headless=False,
         )
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
             fitness_strategies,
             nlopt_algorithms,
             noise_strategies,
-            runs_per_bundle=1,
+            runs_per_bundle=32,
             headless=False,
         )
     # endregion

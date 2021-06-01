@@ -7,6 +7,13 @@ import numpy as np
 import pandas as pd
 import prefixed
 from cameras.cameras import Amount, Camera, mean_squash_camera
+from evolution.base import (
+    CrossoverStrategy,
+    FitnessStrategy,
+    MutationStrategy,
+    PopulateStrategy,
+    SelectionStrategy,
+)
 from evolution.strategies import StrategyBundle, strategy_bundle
 from loguru import logger
 
@@ -165,6 +172,44 @@ class EvolutionResultWriter(ResultWriter):
         new_row.update(self._construct_geometry_entries("y0", y0_result))
 
         self._save_experiment(new_row)
+
+    def has(
+        self,
+        amount: Amount,
+        population_strategy: PopulateStrategy,
+        fitness_strategy: FitnessStrategy,
+        selection_strategy: SelectionStrategy,
+        crossover_strategy: CrossoverStrategy,
+        mutation_strategy: MutationStrategy,
+        noise_strategy: NoiseStrategy,
+    ):
+        population_filter = (
+            self._data_df["population_fn"] == population_strategy.printable_identifier()
+        )
+        fitness_filter = self._data_df["fitness_fn"] == fitness_strategy.printable_identifier()
+        selection_filter = (
+            self._data_df["selection_fn"] == selection_strategy.printable_identifier()
+        )
+        crossover_filter = (
+            self._data_df["crossover_fn"] == crossover_strategy.printable_identifier()
+        )
+        mutation_filter = self._data_df["mutation_fn"] == mutation_strategy.printable_identifier()
+        noise_type_filter = self._data_df["noise_type"] == noise_strategy.printable_identifier()
+        noise_value_filter = self._data_df["noise_value"] == noise_strategy.get_value()
+        distance_type_filter = self._data_df["distance_type"] == amount.name
+
+        return len(
+            self._data_df[
+                population_filter
+                & fitness_filter
+                & selection_filter
+                & crossover_filter
+                & mutation_filter
+                & noise_type_filter
+                & noise_value_filter
+                & distance_type_filter
+            ]
+        )
 
 
 class NloptResultWriter(ResultWriter):
