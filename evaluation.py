@@ -25,11 +25,12 @@ from evolution.strategies import (
     ValueUniformPopulation,
 )
 from loguru import logger
+from pandas.core.computation.expressions import evaluate
 
 from cameras.cameras import Amount, Camera, mean_squash_camera, wiggle_camera
 from optimizer.evolution_optimizer import EvolutionOptimizer
 from optimizer.nlopt_optimizer import NloptAlgorithms, NloptOptimizer
-from scripts.evaluate_evolution import evaluate_evolutions
+from scripts.evaluator_evolution import EvolutionEvaluator
 from utils.color_utils import Color
 from utils.error_utils import (
     ReprojectionErrorResult,
@@ -98,31 +99,37 @@ if __name__ == "__main__":
     ]
     # endregion
 
-    # region [Region3] Perform Evolution experiments
-    evaluate_evolutions(
-        image_shape,
-        genome_parameters,
-        fitting_geometry,
-        amounts,
-        population_strategies,
-        fitness_strategies,
-        selection_strategies,
-        crossover_strategies,
-        mutation_strategies,
-        termination_strategies,
-        noise_strategies,
-        evolution_results_file,
-        append_mode=False,
-        runs_per_bundle=32,
-        headless=False,
-    )
+    # region [TMP]
+    run_evolution, run_nlopt = True, False
+    # endregion
 
+    # region [Region3] Perform Evolution experiments
+    if run_evolution:
+        evaluator = EvolutionEvaluator(
+            image_shape, genome_parameters, evolution_results_file, append_mode=False
+        )
+        evaluator.evaluate(
+            fitting_geometry,
+            amounts,
+            population_strategies,
+            fitness_strategies,
+            selection_strategies,
+            crossover_strategies,
+            mutation_strategies,
+            termination_strategies,
+            noise_strategies,
+            runs_per_bundle=32,
+            headless=False,
+        )
+
+    # endregion
+
+    # region [Region4] Perform Nlopt experiments
+    if run_nlopt:
+        evaluate_nlopt()
     # endregion
 
     exit(0)
-
-    # region [Region4] Perform Nlopt experiments
-    # endregion
 
     # region [TMP]
     ################################################################################### EOF
