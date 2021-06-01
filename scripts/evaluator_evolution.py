@@ -39,19 +39,7 @@ class EvolutionEvaluator(Evaluator):
         output_file: str,
         append_mode: bool = True,
     ):
-        super().__init__()
-        self._image_shape = image_shape
-
-        self._genome_parameters = genome_parameters
-        self._camera_translator = CameraTranslator()
-
-        camera_genome_factory = CameraGenomeFactory(genome_parameters)
-
-        self._target_camera = mean_squash_camera(image_shape)
-        self._target_genome = camera_genome_factory.create(self._target_camera.dna, "TargetGenome")
-
-        self._wiggle_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-        self._n_wiggles = 7
+        super().__init__(image_shape, genome_parameters)
 
         self._evolution_writer: ResultWriter = EvolutionResultWriter(
             output_file, append_mode=append_mode

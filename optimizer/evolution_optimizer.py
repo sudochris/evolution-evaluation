@@ -1,3 +1,4 @@
+import sys
 import time
 from timeit import default_timer as timer
 
@@ -44,9 +45,13 @@ class EvolutionOptimizer(Optimizer):
 
     def optimize(self):
         logger.debug("Running evolution optimizer")
-        start_time = timer()
-        result_data = self._evolution.run()
-        end_time = timer()
+        try:
+            start_time = timer()
+            result_data = self._evolution.run()
+            end_time = timer()
+        except ValueError as e:
+            logger.error(self._strategy_bundle.name_identifier)
+            sys.exit(f"Error evaluating {self._strategy_bundle.name_identifier}")
 
         duration_in_s = end_time - start_time
 

@@ -31,6 +31,7 @@ from cameras.cameras import Amount, Camera, mean_squash_camera, wiggle_camera
 from optimizer.evolution_optimizer import EvolutionOptimizer
 from optimizer.nlopt_optimizer import NloptAlgorithms, NloptOptimizer
 from scripts.evaluator_evolution import EvolutionEvaluator
+from scripts.evaluator_nlopt import NloptEvaluator
 from utils.color_utils import Color
 from utils.error_utils import (
     ReprojectionErrorResult,
@@ -55,6 +56,7 @@ if __name__ == "__main__":
     parameters_file = "data/squash/parameters.json"
     geometry_file = "data/squash/geometries/squash_court.obj"
     evolution_results_file = "results/evolution_experiments_dev.csv"
+    nlopt_results_file = "results/nlopt_experiments_dev.csv"
 
     image_shape = (600, 800)
     genome_parameters = CameraGenomeParameters(parameters_file, image_shape)
@@ -63,6 +65,7 @@ if __name__ == "__main__":
 
     # region [Region2] (C) Define lists for constructing strategy bundles
     amounts = [Amount.near(), Amount.medium(), Amount.far()]
+
     population_strategies = [
         lambda start_dna: ValueUniformPopulation(start_dna, 8),
         lambda start_dna: ValueUniformPopulation(start_dna, 16),
@@ -100,7 +103,7 @@ if __name__ == "__main__":
     # endregion
 
     # region [TMP]
-    run_evolution, run_nlopt = True, False
+    run_evolution, run_nlopt = False, True
     # endregion
 
     # region [Region3] Perform Evolution experiments
@@ -118,15 +121,29 @@ if __name__ == "__main__":
             mutation_strategies,
             termination_strategies,
             noise_strategies,
-            runs_per_bundle=32,
+            runs_per_bundle=1,
             headless=False,
         )
 
     # endregion
 
     # region [Region4] Perform Nlopt experiments
+
+    nlopt_algorithms = [NloptAlgorithms.L_SBPLX]
+
     if run_nlopt:
-        evaluate_nlopt()
+        nlopt_evaluator = NloptEvaluator(
+            image_shape, genome_parameters, nlopt_results_file, append_mode=False
+        )
+        nlopt_evaluator.evaluate(
+            fitting_geometry,
+            amounts,
+            fitness_strategies,
+            nlopt_algorithms,
+            noise_strategies,
+            runs_per_bundle=1,
+            headless=False,
+        )
     # endregion
 
     exit(0)
