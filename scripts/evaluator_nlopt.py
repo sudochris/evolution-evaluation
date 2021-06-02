@@ -9,7 +9,7 @@ from cameras.cameras import Amount, wiggle_camera
 from optimizer.nlopt_optimizer import NloptAlgorithms, NloptOptimizer
 from scripts.evaluator_base import Evaluator
 from utils.noise_utils import NoiseStrategy
-from utils.persistence_utils import NloptResultWriter
+from utils.persistence_utils import NloptResultWriter, ResultWriter
 
 
 class NloptEvaluator(Evaluator):
@@ -48,8 +48,7 @@ class NloptEvaluator(Evaluator):
                 )
                 edge_image = self._construct_edge_image(
                     self._image_shape,
-                    self._camera_translator,
-                    self._target_genome,
+                    self._target_camera,
                     fitting_geometry,
                     noise_strategy,
                 )

@@ -4,7 +4,7 @@ import cv2 as cv
 import nlopt as nlopt
 import numpy as np
 from evolution.base import BaseGeometry, FitnessStrategy
-from evolution.camera import CameraTranslator, render_geometry_with_camera
+from evolution.camera import render_geometry_with_camera
 from loguru import logger
 
 from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
@@ -52,7 +52,6 @@ class NloptOptimizer(Optimizer):
 
         _fitness_map = fitness_strategy.create_fitness(edge_image)
         _render_image = np.zeros_like(edge_image)
-        _camera_translator = CameraTranslator()
         _geometry = geometry
 
         self._best_fitness = 0

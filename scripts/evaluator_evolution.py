@@ -1,4 +1,5 @@
 import itertools
+from collections import Callable
 
 import numpy as np
 from evolution.base import (
@@ -6,9 +7,8 @@ from evolution.base import (
     CrossoverStrategy,
     FitnessStrategy,
     MutationStrategy,
-    PopulateStrategy,
     SelectionStrategy,
-    TerminationStrategy,
+    TerminationStrategy, PopulateStrategy,
 )
 from evolution.base.base_geometry import DenseGeometry, PlaneGeometry
 from evolution.camera import (
@@ -43,11 +43,11 @@ class EvolutionEvaluator(Evaluator):
             self,
             fitting_geometry: BaseGeometry,
             amounts: list[Amount],
-            population_strategies: list[PopulateStrategy],
+            population_strategies: list[Callable[[np.array], PopulateStrategy]],
             fitness_strategies: list[FitnessStrategy],
             selection_strategies: list[SelectionStrategy],
             crossover_strategies: list[CrossoverStrategy],
-            mutation_stategies: list[MutationStrategy],
+            mutation_strategies: list[MutationStrategy],
             termination_strategies: list[TerminationStrategy],
             noise_strategies: list[NoiseStrategy],
             runs_per_bundle=32,
@@ -63,7 +63,7 @@ class EvolutionEvaluator(Evaluator):
             fitness_strategies,
             selection_strategies,
             crossover_strategies,
-            mutation_stategies,
+            mutation_strategies,
             termination_strategies,
             noise_strategies,
         ]
@@ -107,8 +107,7 @@ class EvolutionEvaluator(Evaluator):
 
                 edge_image = self._construct_edge_image(
                     self._image_shape,
-                    self._camera_translator,
-                    self._target_genome,
+                    self._target_camera,
                     fitting_geometry,
                     noise_strategy,
                 )
