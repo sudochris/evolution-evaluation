@@ -223,7 +223,7 @@ class NloptResultWriter(ResultWriter):
         # endregion
 
         # region [Region2] Fitness + Generation Header
-        results = ("best_fitness",)
+        results = ("best_fitness", "duration_in_s",)
         # endregion
 
         # region [Region3] Result for various geometries
@@ -258,6 +258,7 @@ class NloptResultWriter(ResultWriter):
             dense_result: ReprojectionErrorResult,
             y0_result: ReprojectionErrorResult,
             best_fitness: float,
+            duration_in_s: float
     ):
         new_row = {
             "nlopt_optimizer": nlopt_optimizer,
@@ -265,6 +266,7 @@ class NloptResultWriter(ResultWriter):
             "noise_type": noise_strategy.printable_identifier(),
             "noise_value": noise_strategy.get_value(),
             "best_fitness": best_fitness,
+            "duration_in_s": duration_in_s
         }
 
         new_row.update(self._construct_camera_entries("s", start_camera))
@@ -276,3 +278,15 @@ class NloptResultWriter(ResultWriter):
         new_row.update(self._construct_geometry_entries("y0", y0_result))
 
         self._save_experiment(new_row)
+
+    def has(self, amount: Amount, optimizer_name: str, noise_strategy: NoiseStrategy):
+        distance_type_filter = self._data_df["distance_type"] == amount.name
+        nlopt_optimizer_filter = self._data_df["nlopt_optimizer"] == optimizer_name
+        noise_type_filter = self._data_df["noise_type"] == noise_strategy.printable_identifier()
+        noise_value_filter = self._data_df["noise_value"] == noise_strategy.get_value()
+        return len(
+            self._data_df[
+                distance_type_filter
+                & nlopt_optimizer_filter
+                & noise_type_filter
+                & noise_value_filter])

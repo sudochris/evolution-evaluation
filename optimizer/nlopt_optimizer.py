@@ -25,11 +25,11 @@ class NloptAlgorithms:
     # endregion
 
     @staticmethod
-    def get_algorithm_name(value) -> str:
+    def get_algorithm_name(algorithm: "NloptAlgorithms") -> str:
         return {
             NloptAlgorithms.L_SBPLX: "L_SBPLX",
             NloptAlgorithms.L_COBYLA: "L_COBYLA",
-        }.get(value, "UNKNOWN")
+        }.get(algorithm, "UNKNOWN")
 
 
 class NloptOptimizer(Optimizer):
@@ -78,8 +78,8 @@ class NloptOptimizer(Optimizer):
             return fitness
 
         self._optimizer.set_max_objective(evo_fitness_fn)
-        logger.warning("MAX TIME IS SET TO 2!")
-        self._optimizer.set_maxtime(2)
+        # logger.warning("MAX TIME IS SET TO 2!")
+        # self._optimizer.set_maxtime(2)
         # self._optimizer.set_lower_bounds(
         #     [500, 500, 200, 100, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0]
         # )
@@ -93,8 +93,6 @@ class NloptOptimizer(Optimizer):
             self._optimizer.set_local_optimizer(local_opt)
 
         self._start_dna = start_dna
-
-        logger.debug(self._optimizer.get_algorithm_name())
 
     def map_result_code(self, value) -> OptimizerResultCode:
         return {

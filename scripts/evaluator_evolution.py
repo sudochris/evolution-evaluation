@@ -22,7 +22,7 @@ from optimizer.evolution_optimizer import EvolutionOptimizer
 from scripts.evaluator_base import Evaluator
 from utils.error_utils import reprojection_error_multiple_geometries
 from utils.noise_utils import NoiseStrategy
-from utils.persistence_utils import EvolutionResultWriter, ResultWriter
+from utils.persistence_utils import EvolutionResultWriter
 
 
 class EvolutionEvaluator(Evaluator):
@@ -35,7 +35,7 @@ class EvolutionEvaluator(Evaluator):
     ):
         super().__init__(image_shape, genome_parameters)
 
-        self._evolution_writer: ResultWriter = EvolutionResultWriter(
+        self._evolution_writer: EvolutionResultWriter = EvolutionResultWriter(
             output_file, append_mode=append_mode
         )
 
@@ -77,10 +77,10 @@ class EvolutionEvaluator(Evaluator):
                 termination_strategy,
                 noise_strategy,
         ) in itertools.product(*strategies):
-
+            the_population_strategy = population_strategy(np.zeros(15))
             n_performed_experiments = self._evolution_writer.has(
                 amount,
-                population_strategy(np.zeros(15)),
+                the_population_strategy,
                 fitness_strategy,
                 selection_strategy,
                 crossover_strategy,
@@ -88,8 +88,16 @@ class EvolutionEvaluator(Evaluator):
                 noise_strategy,
             )
             if n_performed_experiments > 0:
+                printable_experiment_string = "{} {} {} {} {} {} {}".format(amount.name,
+                                                                            the_population_strategy.printable_identifier(),
+                                                                            fitness_strategy.printable_identifier(),
+                                                                            selection_strategy.printable_identifier(),
+                                                                            crossover_strategy.printable_identifier(),
+                                                                            mutation_strategy.printable_identifier(),
+                                                                            noise_strategy.printable_identifier())
+                delta = runs_per_bundle - n_performed_experiments
                 logger.info(
-                    f"Found {n_performed_experiments} experiments {runs_per_bundle - n_performed_experiments} missing."
+                    f"Found {n_performed_experiments} experiments {delta} missing [{printable_experiment_string}] "
                 )
             for _ in range(n_performed_experiments, runs_per_bundle):
                 start_camera = wiggle_camera(

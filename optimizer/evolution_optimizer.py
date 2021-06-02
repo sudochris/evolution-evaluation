@@ -43,7 +43,7 @@ class EvolutionOptimizer(Optimizer):
         }.get(value, OptimizerResultCode.UNKNOWN)
 
     def optimize(self):
-        logger.debug("Running evolution optimizer")
+        # logger.debug("Running evolution optimizer")
         try:
             start_time = timer()
             result_data = self._evolution.run()
