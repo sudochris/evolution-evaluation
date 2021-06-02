@@ -1,12 +1,11 @@
 import sys
-import time
 from timeit import default_timer as timer
 
 import cv2 as cv
 import numpy as np
 from evolution.base import BaseGeometry
 from evolution.camera import CameraGenomeParameters, GeneticCameraAlgorithm
-from evolution.strategies import StrategyBundle, strategy_bundle
+from evolution.strategies import StrategyBundle
 from loguru import logger
 
 from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
@@ -14,12 +13,12 @@ from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
 
 class EvolutionOptimizer(Optimizer):
     def __init__(
-        self,
-        strategy_bundle: StrategyBundle,
-        genome_parameters: CameraGenomeParameters,
-        edge_image: np.array,
-        geometry: BaseGeometry,
-        headless: bool = True,
+            self,
+            strategy_bundle: StrategyBundle,
+            genome_parameters: CameraGenomeParameters,
+            edge_image: np.array,
+            geometry: BaseGeometry,
+            headless: bool = True,
     ):
         super().__init__()
         self._strategy_bundle = strategy_bundle

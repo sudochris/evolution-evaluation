@@ -1,7 +1,5 @@
 # region [ImportColor] Import
-
 import cv2 as cv
-import nlopt
 import numpy as np
 from evolution.camera import (
     CameraGenomeFactory,
@@ -25,7 +23,6 @@ from evolution.strategies import (
     ValueUniformPopulation,
 )
 from loguru import logger
-from pandas.core.computation.expressions import evaluate
 
 from cameras.cameras import Amount, Camera, mean_squash_camera, wiggle_camera
 from optimizer.evolution_optimizer import EvolutionOptimizer
@@ -34,17 +31,11 @@ from scripts.evaluator_evolution import EvolutionEvaluator
 from scripts.evaluator_nlopt import NloptEvaluator
 from utils.color_utils import Color
 from utils.error_utils import (
-    ReprojectionErrorResult,
-    reprojection_error,
     reprojection_error_multiple_geometries,
 )
 from utils.noise_utils import GridNoise, HLinesNoise, NoNoise, SaltNoise, VLinesNoise
-from utils.persistence_utils import EvolutionResultWriter, NloptResultWriter, ResultWriter
-from utils.transform_utils import split_dna
 
 # endregion
-
-
 if __name__ == "__main__":
     # region [Region0] (A) General application and logging setup
     fmt = "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}"
@@ -55,7 +46,7 @@ if __name__ == "__main__":
 
     parameters_file = "data/squash/parameters.json"
     geometry_file = "data/squash/geometries/squash_court.obj"
-    evolution_results_file = "results/evolution_experiments_dev.csv"
+    evolution_results_file = "results/evolution_experiments_dev2.csv"
     nlopt_results_file = "results/nlopt_experiments_dev.csv"
 
     image_shape = (600, 800)

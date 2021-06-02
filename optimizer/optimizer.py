@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 import numpy as np
-from loguru import logger
-from numpy.core.defchararray import array
 
 
 class OptimizerResultCode(IntEnum):

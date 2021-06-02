@@ -1,15 +1,14 @@
-import time
 from timeit import default_timer as timer
 
 import cv2 as cv
 import nlopt as nlopt
 import numpy as np
 from evolution.base import BaseGeometry, FitnessStrategy
-from evolution.camera import CameraTranslator, camera_translator, render_geometry_with_camera
+from evolution.camera import CameraTranslator, render_geometry_with_camera
 from loguru import logger
-from utils.transform_utils import split_dna
 
 from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
+from utils.transform_utils import split_dna
 
 
 class NloptAlgorithms:
@@ -22,6 +21,7 @@ class NloptAlgorithms:
     L_COBYLA = nlopt.LN_COBYLA
     # L_BOBYQA = nlopt.LN_BOBYQA
     L_SBPLX = nlopt.LN_SBPLX
+
     # endregion
 
     @staticmethod
@@ -34,13 +34,13 @@ class NloptAlgorithms:
 
 class NloptOptimizer(Optimizer):
     def __init__(
-        self,
-        fitness_strategy: FitnessStrategy,
-        edge_image: np.array,
-        start_dna: np.array,
-        geometry: BaseGeometry,
-        nlopt_algorithm,
-        headless: bool = True,
+            self,
+            fitness_strategy: FitnessStrategy,
+            edge_image: np.array,
+            start_dna: np.array,
+            geometry: BaseGeometry,
+            nlopt_algorithm,
+            headless: bool = True,
     ):
         super().__init__()
         _N_CAMERA_PARAMETERS = 15  # TODO: Derive from len(start_genome)

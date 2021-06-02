@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Union
 
 import numpy as np
-from cameras.cameras import Camera
 from evolution.base import BaseGeometry
 from evolution.camera.camera_rendering import project_points
 
+from cameras.cameras import Camera
 from utils.transform_utils import split_dna
 
 
@@ -31,9 +31,8 @@ class ReprojectionErrorResult:
 
 
 def reprojection_error(
-    camera_a: Union[Camera, np.array], camera_b: Union[Camera, np.array], geometry: BaseGeometry
+        camera_a: Union[Camera, np.array], camera_b: Union[Camera, np.array], geometry: BaseGeometry
 ) -> ReprojectionErrorResult:
-
     cma, ta, ra, da = split_dna(camera_a.dna if type(camera_a) == Camera else camera_a)
     cmb, tb, rb, db = split_dna(camera_b.dna if type(camera_b) == Camera else camera_b)
     _projected_points_a = project_points(geometry.world_points, cma, ta, ra, da)
@@ -60,8 +59,8 @@ def reprojection_error(
 
 
 def reprojection_error_multiple_geometries(
-    camera_a: Union[Camera, np.array],
-    camera_b: Union[Camera, np.array],
-    geometries: list[BaseGeometry],
+        camera_a: Union[Camera, np.array],
+        camera_b: Union[Camera, np.array],
+        geometries: list[BaseGeometry],
 ) -> list[ReprojectionErrorResult]:
     return [reprojection_error(camera_a, camera_b, geometry) for geometry in geometries]

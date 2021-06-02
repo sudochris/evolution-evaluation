@@ -151,8 +151,8 @@ class GridNoise(NoiseStrategy):
 
         noise = h_noise + v_noise
         return _rotate_image(noise, self.angle)[
-            border_half : (h + border_half), border_half : (w + border_half)
-        ]
+               border_half: (h + border_half), border_half: (w + border_half)
+               ]
 
     def printable_identifier(self):
         return "straight_grid" if self.angle == 0 else "angled_grid"

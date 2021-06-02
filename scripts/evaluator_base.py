@@ -1,5 +1,4 @@
 import numpy as np
-from cameras.cameras import mean_squash_camera
 from evolution.base import BaseGenome
 from evolution.base.base_geometry import BaseGeometry
 from evolution.camera import (
@@ -8,9 +7,10 @@ from evolution.camera import (
     render_geometry_with_camera,
 )
 from evolution.camera.camera_translator import CameraTranslator
+
+from cameras.cameras import mean_squash_camera
 from utils.color_utils import Color
 from utils.noise_utils import NoiseStrategy, add_noise_to_image
-from utils.persistence_utils import EvolutionResultWriter
 
 
 class Evaluator:
@@ -30,14 +30,13 @@ class Evaluator:
         self._n_wiggles = 7
 
     def _construct_edge_image(
-        self,
-        image_shape: tuple[int, int],
-        translator: CameraTranslator,
-        genome: BaseGenome,
-        fitting_geometry: BaseGeometry,
-        noise_strategy: NoiseStrategy,
+            self,
+            image_shape: tuple[int, int],
+            translator: CameraTranslator,
+            genome: BaseGenome,
+            fitting_geometry: BaseGeometry,
+            noise_strategy: NoiseStrategy,
     ) -> np.array:
-
         edge_image = np.zeros(image_shape, dtype=np.uint8)
 
         cm, t, r, d = translator.translate_genome(genome)

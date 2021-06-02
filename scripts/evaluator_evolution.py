@@ -1,10 +1,7 @@
 import itertools
 
-import cv2 as cv
 import numpy as np
-from cameras.cameras import Amount, Camera, mean_squash_camera, wiggle_camera
 from evolution.base import (
-    BaseGenome,
     BaseGeometry,
     CrossoverStrategy,
     FitnessStrategy,
@@ -15,29 +12,26 @@ from evolution.base import (
 )
 from evolution.base.base_geometry import DenseGeometry, PlaneGeometry
 from evolution.camera import (
-    CameraGenomeFactory,
     CameraGenomeParameters,
-    CameraTranslator,
-    render_geometry_with_camera,
 )
 from evolution.strategies import StrategyBundle
 from loguru import logger
-from optimizer.evolution_optimizer import EvolutionOptimizer
-from utils.color_utils import Color
-from utils.error_utils import reprojection_error_multiple_geometries
-from utils.noise_utils import NoiseStrategy, add_noise_to_image
-from utils.persistence_utils import EvolutionResultWriter, ResultWriter
 
+from cameras.cameras import Amount, Camera, wiggle_camera
+from optimizer.evolution_optimizer import EvolutionOptimizer
 from scripts.evaluator_base import Evaluator
+from utils.error_utils import reprojection_error_multiple_geometries
+from utils.noise_utils import NoiseStrategy
+from utils.persistence_utils import EvolutionResultWriter, ResultWriter
 
 
 class EvolutionEvaluator(Evaluator):
     def __init__(
-        self,
-        image_shape: tuple[int, int],
-        genome_parameters: CameraGenomeParameters,
-        output_file: str,
-        append_mode: bool = True,
+            self,
+            image_shape: tuple[int, int],
+            genome_parameters: CameraGenomeParameters,
+            output_file: str,
+            append_mode: bool = True,
     ):
         super().__init__(image_shape, genome_parameters)
 
@@ -46,18 +40,18 @@ class EvolutionEvaluator(Evaluator):
         )
 
     def evaluate(
-        self,
-        fitting_geometry: BaseGeometry,
-        amounts: list[Amount],
-        population_strategies: list[PopulateStrategy],
-        fitness_strategies: list[FitnessStrategy],
-        selection_strategies: list[SelectionStrategy],
-        crossover_strategies: list[CrossoverStrategy],
-        mutation_stategies: list[MutationStrategy],
-        termination_strategies: list[TerminationStrategy],
-        noise_strategies: list[NoiseStrategy],
-        runs_per_bundle=32,
-        headless=True,
+            self,
+            fitting_geometry: BaseGeometry,
+            amounts: list[Amount],
+            population_strategies: list[PopulateStrategy],
+            fitness_strategies: list[FitnessStrategy],
+            selection_strategies: list[SelectionStrategy],
+            crossover_strategies: list[CrossoverStrategy],
+            mutation_stategies: list[MutationStrategy],
+            termination_strategies: list[TerminationStrategy],
+            noise_strategies: list[NoiseStrategy],
+            runs_per_bundle=32,
+            headless=True,
     ):
         geometry_dense = DenseGeometry(fitting_geometry, 16)
         geometry_y0 = PlaneGeometry(fitting_geometry, 0, 16)
@@ -74,14 +68,14 @@ class EvolutionEvaluator(Evaluator):
             noise_strategies,
         ]
         for (
-            amount,
-            population_strategy,
-            fitness_strategy,
-            selection_strategy,
-            crossover_strategy,
-            mutation_strategy,
-            termination_strategy,
-            noise_strategy,
+                amount,
+                population_strategy,
+                fitness_strategy,
+                selection_strategy,
+                crossover_strategy,
+                mutation_strategy,
+                termination_strategy,
+                noise_strategy,
         ) in itertools.product(*strategies):
 
             n_performed_experiments = self._evolution_writer.has(
@@ -95,7 +89,7 @@ class EvolutionEvaluator(Evaluator):
             )
             if n_performed_experiments > 0:
                 logger.info(
-                    f"Found {n_performed_experiments} experiments {runs_per_bundle-n_performed_experiments} missing."
+                    f"Found {n_performed_experiments} experiments {runs_per_bundle - n_performed_experiments} missing."
                 )
             for _ in range(n_performed_experiments, runs_per_bundle):
                 start_camera = wiggle_camera(

@@ -1,12 +1,8 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from pathlib import Path
-from typing import Any, Iterable
 
-import numpy as np
 import pandas as pd
-import prefixed
-from cameras.cameras import Amount, Camera, mean_squash_camera
 from evolution.base import (
     CrossoverStrategy,
     FitnessStrategy,
@@ -14,11 +10,12 @@ from evolution.base import (
     PopulateStrategy,
     SelectionStrategy,
 )
-from evolution.strategies import StrategyBundle, strategy_bundle
+from evolution.strategies import StrategyBundle
 from loguru import logger
 
+from cameras.cameras import Amount, Camera
 from utils.error_utils import ReprojectionErrorResult
-from utils.exceptions import HeaderValueMismatch, InvalidHeader
+from utils.exceptions import InvalidHeader
 from utils.noise_utils import NoiseStrategy
 
 
@@ -124,30 +121,30 @@ class EvolutionResultWriter(ResultWriter):
 
         # region [Region4] Concatenate all results to form the final header
         full_columns = (
-            strategy_columns
-            + noise_columns
-            + start_camera_header
-            + target_camera_header
-            + result_camera_header
-            + results
-            + results_geometries
+                strategy_columns
+                + noise_columns
+                + start_camera_header
+                + target_camera_header
+                + result_camera_header
+                + results
+                + results_geometries
         )
         # endregion
         return full_columns
 
     def save_experiment(
-        self,
-        strategy_bundle: StrategyBundle,
-        distance_amount: Amount,
-        start_camera: Camera,
-        target_camera: Camera,
-        result_camera: Camera,
-        noise_strategy: NoiseStrategy,
-        fitting_result: ReprojectionErrorResult,
-        dense_result: ReprojectionErrorResult,
-        y0_result: ReprojectionErrorResult,
-        best_fitness: float,
-        generations: int,
+            self,
+            strategy_bundle: StrategyBundle,
+            distance_amount: Amount,
+            start_camera: Camera,
+            target_camera: Camera,
+            result_camera: Camera,
+            noise_strategy: NoiseStrategy,
+            fitting_result: ReprojectionErrorResult,
+            dense_result: ReprojectionErrorResult,
+            y0_result: ReprojectionErrorResult,
+            best_fitness: float,
+            generations: int,
     ):
         new_row = {
             "population_fn": strategy_bundle.populate_strategy.printable_identifier(),
@@ -174,24 +171,24 @@ class EvolutionResultWriter(ResultWriter):
         self._save_experiment(new_row)
 
     def has(
-        self,
-        amount: Amount,
-        population_strategy: PopulateStrategy,
-        fitness_strategy: FitnessStrategy,
-        selection_strategy: SelectionStrategy,
-        crossover_strategy: CrossoverStrategy,
-        mutation_strategy: MutationStrategy,
-        noise_strategy: NoiseStrategy,
+            self,
+            amount: Amount,
+            population_strategy: PopulateStrategy,
+            fitness_strategy: FitnessStrategy,
+            selection_strategy: SelectionStrategy,
+            crossover_strategy: CrossoverStrategy,
+            mutation_strategy: MutationStrategy,
+            noise_strategy: NoiseStrategy,
     ):
         population_filter = (
-            self._data_df["population_fn"] == population_strategy.printable_identifier()
+                self._data_df["population_fn"] == population_strategy.printable_identifier()
         )
         fitness_filter = self._data_df["fitness_fn"] == fitness_strategy.printable_identifier()
         selection_filter = (
-            self._data_df["selection_fn"] == selection_strategy.printable_identifier()
+                self._data_df["selection_fn"] == selection_strategy.printable_identifier()
         )
         crossover_filter = (
-            self._data_df["crossover_fn"] == crossover_strategy.printable_identifier()
+                self._data_df["crossover_fn"] == crossover_strategy.printable_identifier()
         )
         mutation_filter = self._data_df["mutation_fn"] == mutation_strategy.printable_identifier()
         noise_type_filter = self._data_df["noise_type"] == noise_strategy.printable_identifier()
@@ -208,13 +205,12 @@ class EvolutionResultWriter(ResultWriter):
                 & noise_type_filter
                 & noise_value_filter
                 & distance_type_filter
-            ]
+                ]
         )
 
 
 class NloptResultWriter(ResultWriter):
     def _header(self) -> tuple[str]:
-
         # region [Region0] Nlopt Specification + Noise Header
         nlopt_type = ("nlopt_optimizer", "distance_type")
         noise_columns = ("noise_type", "noise_value")
@@ -239,29 +235,29 @@ class NloptResultWriter(ResultWriter):
 
         # region [Region4] Concatenate all results to form the final header
         full_columns = (
-            nlopt_type
-            + noise_columns
-            + start_camera_header
-            + target_camera_header
-            + result_camera_header
-            + results
-            + results_geometries
+                nlopt_type
+                + noise_columns
+                + start_camera_header
+                + target_camera_header
+                + result_camera_header
+                + results
+                + results_geometries
         )
         # endregion
         return full_columns
 
     def save_experiment(
-        self,
-        nlopt_optimizer: str,
-        distance_amount: Amount,
-        start_camera: Camera,
-        target_camera: Camera,
-        result_camera: Camera,
-        noise_strategy: NoiseStrategy,
-        fitting_result: ReprojectionErrorResult,
-        dense_result: ReprojectionErrorResult,
-        y0_result: ReprojectionErrorResult,
-        best_fitness: float,
+            self,
+            nlopt_optimizer: str,
+            distance_amount: Amount,
+            start_camera: Camera,
+            target_camera: Camera,
+            result_camera: Camera,
+            noise_strategy: NoiseStrategy,
+            fitting_result: ReprojectionErrorResult,
+            dense_result: ReprojectionErrorResult,
+            y0_result: ReprojectionErrorResult,
+            best_fitness: float,
     ):
         new_row = {
             "nlopt_optimizer": nlopt_optimizer,

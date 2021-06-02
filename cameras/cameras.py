@@ -1,9 +1,7 @@
 import random
-from dataclasses import dataclass
 from typing import Tuple
 
 import numpy as np
-from cv2 import data
 
 
 class Amount:
@@ -51,22 +49,22 @@ class Amount:
 
 class Camera:
     def __init__(
-        self,
-        fu: float = 0.0,
-        fv: float = 0.0,
-        cx: float = 0.0,
-        cy: float = 0.0,
-        tx: float = 0.0,
-        ty: float = 0.0,
-        tz: float = 0.0,
-        rx: float = 0.0,
-        ry: float = 0.0,
-        rz: float = 0.0,
-        d0: float = 0.0,
-        d1: float = 0.0,
-        d2: float = 0.0,
-        d3: float = 0.0,
-        d4: float = 0.0,
+            self,
+            fu: float = 0.0,
+            fv: float = 0.0,
+            cx: float = 0.0,
+            cy: float = 0.0,
+            tx: float = 0.0,
+            ty: float = 0.0,
+            tz: float = 0.0,
+            rx: float = 0.0,
+            ry: float = 0.0,
+            rz: float = 0.0,
+            d0: float = 0.0,
+            d1: float = 0.0,
+            d2: float = 0.0,
+            d3: float = 0.0,
+            d4: float = 0.0,
     ):
         self._fu, self._fv = fu, fv
         self._cx, self._cy = cx, cy
@@ -96,7 +94,7 @@ def mean_squash_camera(image_shape: Tuple[int, int]) -> Camera:
 
 
 def wiggle_camera(
-    camera: Camera, amount: Amount, allowed_gene_indices: list, n_genes: int
+        camera: Camera, amount: Amount, allowed_gene_indices: list, n_genes: int
 ) -> Camera:
     """Selects a number of allowed genes and changes them according the specified amount
 
