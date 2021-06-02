@@ -6,7 +6,7 @@ from evolution.camera import CameraGenomeParameters
 from loguru import logger
 
 from cameras.cameras import Amount, wiggle_camera, Camera
-from optimizer.nlopt_optimizer import NloptAlgorithms, NloptOptimizer
+from optimizer.nlopt_optimizer import NloptOptimizer, NloptAlgorithm
 from scripts.evaluator_base import Evaluator
 from utils.error_utils import reprojection_error_multiple_geometries
 from utils.noise_utils import NoiseStrategy
@@ -32,7 +32,7 @@ class NloptEvaluator(Evaluator):
             fitting_geometry: BaseGeometry,
             amounts: list[Amount],
             fitness_strategies: list[FitnessStrategy],
-            nlopt_algorithms: list[NloptAlgorithms],
+            nlopt_algorithms: list[NloptAlgorithm],
             noise_strategies: list[NoiseStrategy],
             runs_per_bundle: int = 32,
             headless: bool = True,
@@ -46,7 +46,7 @@ class NloptEvaluator(Evaluator):
         for (amount, fitness_strategy, nlopt_algorithm, noise_strategy) in itertools.product(
                 *strategies
         ):
-            algorithm_name = NloptAlgorithms.get_algorithm_name(nlopt_algorithm)
+            algorithm_name = nlopt_algorithm.display_name
 
             n_performed_experiments = self._nlopt_writer.has(
                 amount,

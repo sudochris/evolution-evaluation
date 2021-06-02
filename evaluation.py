@@ -23,7 +23,7 @@ from cameras.cameras import Amount
 from optimizer.nlopt_optimizer import NloptAlgorithms
 from scripts.evaluator_evolution import EvolutionEvaluator
 from scripts.evaluator_nlopt import NloptEvaluator
-from utils.noise_utils import GridNoise, HLinesNoise, NoNoise, SaltNoise, VLinesNoise
+from utils.noise_utils import GridNoise, HLinesNoise, VLinesNoise, NoNoise, SaltNoise
 
 # endregion
 if __name__ == "__main__":
@@ -83,10 +83,7 @@ if __name__ == "__main__":
     ]
     # endregion
 
-    # region [TMP]
     run_evolution, run_nlopt = False, True
-    # endregion
-
     # region [Region3] Perform Evolution experiments
     if run_evolution:
         evaluator = EvolutionEvaluator(
@@ -108,8 +105,7 @@ if __name__ == "__main__":
     # endregion
 
     # region [Region4] Perform Nlopt experiments
-
-    nlopt_algorithms = [NloptAlgorithms.L_SBPLX, NloptAlgorithms.L_COBYLA]
+    nlopt_algorithms = [NloptAlgorithms.G_DIRECT_L]
 
     if run_nlopt:
         nlopt_evaluator = NloptEvaluator(

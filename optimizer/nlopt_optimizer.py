@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from timeit import default_timer as timer
 
 import cv2 as cv
@@ -11,25 +12,19 @@ from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
 from utils.transform_utils import split_dna
 
 
+@dataclass
+class NloptAlgorithm:
+    display_name: str
+    value: int
+    needs_bounds: bool = False
+    local_optimizer: "NloptAlgorithm" = None
+
+
 class NloptAlgorithms:
-    """All defined algorithms are on purpose derivative free"""
-
-    # region [Region0] Global Algorithms
-    # G_DIRECT = nlopt.GN_DIRECT
-    # endregion
-    # region [Region3] Local Algorithms
-    L_COBYLA = nlopt.LN_COBYLA
-    # L_BOBYQA = nlopt.LN_BOBYQA
-    L_SBPLX = nlopt.LN_SBPLX
-
-    # endregion
-
-    @staticmethod
-    def get_algorithm_name(algorithm: "NloptAlgorithms") -> str:
-        return {
-            NloptAlgorithms.L_SBPLX: "L_SBPLX",
-            NloptAlgorithms.L_COBYLA: "L_COBYLA",
-        }.get(algorithm, "UNKNOWN")
+    L_SBPLX = NloptAlgorithm("L_SBPLX", nlopt.LN_SBPLX, False)
+    L_COBYLA = NloptAlgorithm("L_COBYLA", nlopt.LN_COBYLA, False)
+    G_CRS = NloptAlgorithm("G_CRS", nlopt.GN_CRS2_LM, True)
+    G_DIRECT_L = NloptAlgorithm("G_CRS", nlopt.GN_DIRECT_L_RAND, True)
 
 
 class NloptOptimizer(Optimizer):
@@ -39,15 +34,15 @@ class NloptOptimizer(Optimizer):
             edge_image: np.array,
             start_dna: np.array,
             geometry: BaseGeometry,
-            nlopt_algorithm,
+            nlopt_algorithm: NloptAlgorithm,
             headless: bool = True,
     ):
         super().__init__()
         _N_CAMERA_PARAMETERS = 15  # TODO: Derive from len(start_genome)
-        _OPTIMIZER_ALGO = nlopt_algorithm
+        _OPTIMIZER_ALGO = nlopt_algorithm.value
         _LOCAL_OPTIMIZER_ALGO = nlopt.LN_NELDERMEAD
-        _needs_local_optimizer = False
-
+        _needs_local_optimizer = nlopt_algorithm.local_optimizer is not None
+        _needs_bounds = nlopt_algorithm.needs_bounds
         self._optimizer = nlopt.opt(_OPTIMIZER_ALGO, _N_CAMERA_PARAMETERS)
 
         _fitness_map = fitness_strategy.create_fitness(edge_image)
@@ -70,7 +65,7 @@ class NloptOptimizer(Optimizer):
                 cv.imshow("I3", _fitness_map)
                 cv.waitKey(1)
 
-            fitness = fitness_lookup.sum().astype(float)
+            fitness = fitness_lookup.sum().astype(np.float64)
 
             if fitness > self._best_fitness:
                 self._best_fitness = fitness
@@ -78,16 +73,27 @@ class NloptOptimizer(Optimizer):
             return fitness
 
         self._optimizer.set_max_objective(evo_fitness_fn)
+
         # logger.warning("MAX TIME IS SET TO 2!")
-        # self._optimizer.set_maxtime(2)
-        # self._optimizer.set_lower_bounds(
-        #     [500, 500, 200, 100, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0]
-        # )
-        # self._optimizer.set_upper_bounds(
-        #     [900, 900, 600, 500, 2.0, 8.0, 15.0, 0.5, 0, 0, 0, 0, 0, 0, 0]
-        # )
+        self._optimizer.set_maxtime(20)
+
+        if _needs_bounds:
+            logger.warning("Enabled bounds")
+            self._optimizer.set_lower_bounds(
+                [500, 500, 200, 100,
+                 -3.2, 0.0, 0.0,
+                 0.0, -0.2, -0.2,
+                 -0.5, -0.5, -0.2, -0.1, -3.0]
+            )
+            self._optimizer.set_upper_bounds(
+                [900, 900, 600, 500,
+                 3.2, 8.0, 10.0,
+                 0.5, 0.2, 0.2,
+                 0.5, 0.5, 0.2, 0.1, 3.0]
+            )
 
         if _needs_local_optimizer:
+            _LOCAL_OPTIMIZER_ALGO = nlopt_algorithm.local_optimizer.value
             local_opt = nlopt.opt(_LOCAL_OPTIMIZER_ALGO, _N_CAMERA_PARAMETERS)
             local_opt.set_max_objective(evo_fitness_fn)
             self._optimizer.set_local_optimizer(local_opt)
@@ -113,7 +119,7 @@ class NloptOptimizer(Optimizer):
         logger.debug("Running nlopt optimizer")
 
         start_time = timer()
-        result_data = self._optimizer.optimize(self._start_dna)
+        result_data = self._optimizer.optimize(self._start_dna.astype(np.float64))
         end_time = timer()
 
         duration_in_s = end_time - start_time
