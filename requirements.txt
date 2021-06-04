@@ -1,4 +1,4 @@
-evolution-resectioning==1.2.3
+evolution-resectioning==1.3.0
 opencv-python==4.5.2.52
 nlopt==2.7.0
 black==21.5b1
