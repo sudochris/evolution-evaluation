@@ -101,7 +101,7 @@ def wiggle_camera(
     Args:
         camera (Camera): The initial camera
         amount (Amount): The amount to wiggle
-        allowed_parameters (list): Allowed parameters (see gene encoding)
+        allowed_gene_indices (list): Allowed parameters (see gene encoding)
         n_genes (int): Number of parameters to select
 
     Returns:
