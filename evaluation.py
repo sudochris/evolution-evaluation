@@ -36,8 +36,8 @@ if __name__ == "__main__":
 
     parameters_file = "data/squash/parameters.json"
     geometry_file = "data/squash/geometries/squash_court.obj"
-    evolution_results_file = "results/evolution_experiments_dev2.csv"
-    nlopt_results_file = "results/nlopt_experiments_dev.csv"
+    evolution_results_file = "results/evolution_experiments_dev2.csv.dev"
+    nlopt_results_file = "results/nlopt_experiments_dev.csv.dev"
 
     image_shape = (600, 800)
     genome_parameters = CameraGenomeParameters(parameters_file, image_shape)
@@ -83,7 +83,18 @@ if __name__ == "__main__":
     ]
     # endregion
 
-    run_evolution, run_nlopt = False, True
+    np.set_printoptions(formatter={'float': '{:0.3f}'.format}, linewidth=np.inf)
+    print("Min: {}".format(mutation_strategies[0].mutation_min))
+    print("Max: {}".format(mutation_strategies[0].mutation_max))
+    print("P  : {}".format(mutation_strategies[0].mutation_probability))
+    print("=======")
+
+    print("Min: {}".format(mutation_strategies[1].mutation_min))
+    print("Max: {}".format(mutation_strategies[1].mutation_max))
+    print("P  : {}".format(mutation_strategies[1].mutation_probability))
+    print("D  : {}".format(mutation_strategies[1].distributions))
+
+    run_evolution, run_nlopt = True, False
     # region [Region3] Perform Evolution experiments
     if run_evolution:
         evaluator = EvolutionEvaluator(

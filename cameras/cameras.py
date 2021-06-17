@@ -110,6 +110,6 @@ def wiggle_camera(
     new_dna = camera.dna.copy()  # 1. Copy initial camera dna
     idx = random.sample(allowed_gene_indices, n_genes)  # 2. Sample allowed indices
     lookup = np.zeros_like(new_dna)  # 3. Allocate an array for
-    lookup[idx] = random.choice([1, -1])  # 4. Select positive or negative values
+    lookup[idx] = np.random.choice([-1, 1], n_genes)  # 4. Select positive or negative values
     new_dna += amount.values * lookup  # 4. Add variation to new dna
     return Camera(*new_dna)  # 5. Construct the new camera from the new dna and return
