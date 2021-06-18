@@ -56,8 +56,6 @@ class EvolutionOptimizer(Optimizer):
 
         duration_in_s = end_time - start_time
 
-        # TODO UNCOMMENT!
-        logger.warning("Evolution result code is always SUCCESS!")
         mapped_result_code = self.map_result_code(0)
 
         best_genome, best_fitness = result_data.best_genome

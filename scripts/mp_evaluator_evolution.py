@@ -110,7 +110,7 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
         result_camera = Camera.from_dna(evolution_result.best_result)
 
         reprojection_errors = reprojection_error_multiple_geometries(
-            start_camera, result_camera.dna, evaluation_geometries
+            target_camera, result_camera.dna, evaluation_geometries
         )
 
         fitting_geometry_result = reprojection_errors[0]
@@ -188,4 +188,4 @@ def evaluate(image_shape: tuple[int, int],
         pool.starmap(_do_optimization, itertools.product(*arguments))  # itertools.product(*strategies))
     end = time.perf_counter()
 
-    print(f"Ran all experiments in {end - start:0.4f} seconds")
+    print(f"All experiments in {end - start:0.4f} seconds")
