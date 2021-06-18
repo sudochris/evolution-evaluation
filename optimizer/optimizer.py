@@ -4,6 +4,8 @@ from enum import IntEnum
 
 import numpy as np
 
+from cameras.cameras import Camera
+
 
 class OptimizerResultCode(IntEnum):
     UNKNOWN = 0
@@ -37,7 +39,7 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
-    def optimize(self) -> OptimizerResult:
+    def optimize(self, start_camera: Camera) -> OptimizerResult:
         raise NotImplementedError("Currently not implemented")
 
     @abstractmethod

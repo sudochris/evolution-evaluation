@@ -8,6 +8,7 @@ from evolution.camera import CameraGenomeParameters, GeneticCameraAlgorithm
 from evolution.strategies import StrategyBundle
 from loguru import logger
 
+from cameras.cameras import Camera
 from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
 
 
@@ -25,7 +26,8 @@ class EvolutionOptimizer(Optimizer):
         self._evolution = GeneticCameraAlgorithm(
             genome_parameters, strategy_bundle, edge_image, geometry, headless
         )
-        cv.imshow("TMP", self._evolution._fitness_map)
+        if not headless:
+            cv.imshow("TMP", self._evolution._fitness_map)
 
     def map_result_code(self, value) -> OptimizerResultCode:
         return {
@@ -42,11 +44,11 @@ class EvolutionOptimizer(Optimizer):
             -5: OptimizerResultCode.FORCED_STOP,
         }.get(value, OptimizerResultCode.UNKNOWN)
 
-    def optimize(self):
+    def optimize(self, start_camera: Camera):
         # logger.debug("Running evolution optimizer")
         try:
             start_time = timer()
-            result_data = self._evolution.run()
+            result_data = self._evolution.run(start_camera.dna)
             end_time = timer()
         except ValueError as e:
             logger.error(self._strategy_bundle.name_identifier)
@@ -54,6 +56,7 @@ class EvolutionOptimizer(Optimizer):
 
         duration_in_s = end_time - start_time
 
+        # TODO UNCOMMENT!
         logger.warning("Evolution result code is always SUCCESS!")
         mapped_result_code = self.map_result_code(0)
 

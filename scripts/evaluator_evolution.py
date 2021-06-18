@@ -1,5 +1,4 @@
 import itertools
-from collections import Callable
 
 import numpy as np
 from evolution.base import (
@@ -38,12 +37,13 @@ class EvolutionEvaluator(Evaluator):
         self._evolution_writer: EvolutionResultWriter = EvolutionResultWriter(
             output_file, append_mode=append_mode
         )
+        # self.lock = Lock()
 
     def evaluate(
             self,
             fitting_geometry: BaseGeometry,
             amounts: list[Amount],
-            population_strategies: list[Callable[[np.array], PopulateStrategy]],
+            population_strategies: list[PopulateStrategy],
             fitness_strategies: list[FitnessStrategy],
             selection_strategies: list[SelectionStrategy],
             crossover_strategies: list[CrossoverStrategy],
@@ -67,6 +67,7 @@ class EvolutionEvaluator(Evaluator):
             termination_strategies,
             noise_strategies,
         ]
+
         for (
                 amount,
                 population_strategy,
@@ -105,7 +106,7 @@ class EvolutionEvaluator(Evaluator):
                 )
 
                 strategy_bundle = StrategyBundle(
-                    population_strategy(start_camera.dna),
+                    population_strategy,
                     fitness_strategy,
                     selection_strategy,
                     crossover_strategy,
@@ -128,7 +129,7 @@ class EvolutionEvaluator(Evaluator):
                     headless,
                 )
 
-                evolution_result = evolution_optimizer.optimize()
+                evolution_result = evolution_optimizer.optimize(start_camera.dna)
                 logger.info(
                     "ResultCode: [{}] {} ({}s)",
                     evolution_result.result_code,

@@ -19,9 +19,9 @@ from evolution.strategies import (
 )
 from loguru import logger
 
+import scripts.mp_evaluator_evolution as mp_evolution
 from cameras.cameras import Amount
 from optimizer.nlopt_optimizer import NloptAlgorithms
-from scripts.evaluator_evolution import EvolutionEvaluator
 from scripts.evaluator_nlopt import NloptEvaluator
 from utils.noise_utils import GridNoise, HLinesNoise, VLinesNoise, NoNoise, SaltNoise
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     parameters_file = "data/squash/parameters.json"
     geometry_file = "data/squash/geometries/squash_court.obj"
-    evolution_results_file = "results/evolution_experiments_dev2.csv.dev"
+    evolution_results_file = "results/mp_evolution_experiments.csv"
     nlopt_results_file = "results/nlopt_experiments_dev.csv.dev"
 
     image_shape = (600, 800)
@@ -48,8 +48,8 @@ if __name__ == "__main__":
     amounts = [Amount.near(), Amount.medium(), Amount.far()]
 
     population_strategies = [
-        lambda start_dna: ValueUniformPopulation(start_dna, 8),
-        lambda start_dna: ValueUniformPopulation(start_dna, 16),
+        ValueUniformPopulation(8),
+        ValueUniformPopulation(16),
     ]
 
     fitness_strategies = [
@@ -97,22 +97,27 @@ if __name__ == "__main__":
     run_evolution, run_nlopt = True, False
     # region [Region3] Perform Evolution experiments
     if run_evolution:
-        evaluator = EvolutionEvaluator(
-            image_shape, genome_parameters, evolution_results_file, append_mode=True
-        )
-        evaluator.evaluate(
-            fitting_geometry,
-            amounts,
-            population_strategies,
-            fitness_strategies,
-            selection_strategies,
-            crossover_strategies,
-            mutation_strategies,
-            termination_strategies,
-            noise_strategies,
-            runs_per_bundle=32,
-            headless=False,
-        )
+        # Run multiprocessing evolution
+        mp_evolution.evaluate(image_shape, genome_parameters, evolution_results_file, fitting_geometry, amounts,
+                              population_strategies, fitness_strategies, selection_strategies, crossover_strategies,
+                              mutation_strategies, termination_strategies, noise_strategies, append_mode=True,
+                              headless=True)
+    # evaluator = EvolutionEvaluator(
+    #     image_shape, genome_parameters, evolution_results_file, append_mode=True
+    # )
+    # evaluator.evaluate(
+    #     fitting_geometry,
+    #     amounts,
+    #     population_strategies,
+    #     fitness_strategies,
+    #     selection_strategies,
+    #     crossover_strategies,
+    #     mutation_strategies,
+    #     termination_strategies,
+    #     noise_strategies,
+    #     runs_per_bundle=32,
+    #     headless=False,
+    # )
     # endregion
 
     # region [Region4] Perform Nlopt experiments
