@@ -113,7 +113,7 @@
     {
       "name": "rx",
       "bounds": {
-        "low": 0.00,
+        "low": -0.50,
         "high": 0.50
       },
       "mutation": {
@@ -217,7 +217,7 @@
       "name": "d4",
       "bounds": {
         "low": -3.0,
-        "high": -3.0
+        "high": 3.0
       },
       "mutation": {
         "low": -3.0,

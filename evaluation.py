@@ -102,22 +102,6 @@ if __name__ == "__main__":
                               population_strategies, fitness_strategies, selection_strategies, crossover_strategies,
                               mutation_strategies, termination_strategies, noise_strategies, append_mode=True,
                               headless=True)
-    # evaluator = EvolutionEvaluator(
-    #     image_shape, genome_parameters, evolution_results_file, append_mode=True
-    # )
-    # evaluator.evaluate(
-    #     fitting_geometry,
-    #     amounts,
-    #     population_strategies,
-    #     fitness_strategies,
-    #     selection_strategies,
-    #     crossover_strategies,
-    #     mutation_strategies,
-    #     termination_strategies,
-    #     noise_strategies,
-    #     runs_per_bundle=32,
-    #     headless=False,
-    # )
     # endregion
 
     # region [Region4] Perform Nlopt experiments

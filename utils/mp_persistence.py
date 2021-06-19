@@ -158,6 +158,50 @@ class MPEvolutionResultWriter(MPResultWriter):
 
         self._save_experiment(new_row)
 
+    def save_experiments(
+            self,
+            strategy_bundle: StrategyBundle,
+            distance_amount: Amount,
+            start_camera: Camera,
+            target_camera: Camera,
+            results_result_camera: list[Camera],
+            noise_strategy: NoiseStrategy,
+            results_fitting_result: list[ReprojectionErrorResult],
+            results_dense_result: list[ReprojectionErrorResult],
+            results_y0_result: list[ReprojectionErrorResult],
+            results_best_fitness: list[float],
+            results_generations: list[int]
+    ):
+        _data_df = self.load_dataframe(self._outfile)
+
+        for (result_camera, fitting_result, dense_result, y0_result, best_fitness, generations) in zip(
+                results_result_camera, results_fitting_result, results_dense_result, results_y0_result,
+                results_best_fitness, results_generations):
+            new_row = {
+                "population_fn": strategy_bundle.populate_strategy.printable_identifier(),
+                "fitness_fn": strategy_bundle.fitness_strategy.printable_identifier(),
+                "selection_fn": strategy_bundle.selection_strategy.printable_identifier(),
+                "crossover_fn": strategy_bundle.crossover_strategy.printable_identifier(),
+                "mutation_fn": strategy_bundle.mutation_strategy.printable_identifier(),
+                "termination_fn": strategy_bundle.termination_strategy.printable_identifier(),
+                "distance_type": distance_amount.name,
+                "noise_type": noise_strategy.printable_identifier(),
+                "noise_value": noise_strategy.get_value(),
+                "best_fitness": best_fitness,
+                "generations": generations,
+            }
+
+            new_row.update(self._construct_camera_entries("s", start_camera))
+            new_row.update(self._construct_camera_entries("t", target_camera))
+            new_row.update(self._construct_camera_entries("r", result_camera))
+
+            new_row.update(self._construct_geometry_entries("fitting", fitting_result))
+            new_row.update(self._construct_geometry_entries("dense", dense_result))
+            new_row.update(self._construct_geometry_entries("y0", y0_result))
+            _data_df = _data_df.append(new_row, ignore_index=True)
+
+        _data_df.to_csv(self._outfile, index=False)
+
     def has(
             self,
             amount: Amount,

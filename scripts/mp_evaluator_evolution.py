@@ -84,6 +84,7 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
             logger.info(
                 f"Found {n_performed_experiments} experiments {delta} missing [{printable_experiment_string}] "
             )
+    results = []
 
     for _ in range(n_performed_experiments, _runs_per_bundle):
         start_camera = wiggle_camera(
@@ -104,10 +105,31 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
             fitting_geometry,
             headless
         )
+        try:
+            evolution_result = evolution_optimizer.optimize(start_camera)
+        except ValueError as e:
+            with shared_data["print_lock"]:
+                logger.error(e)
+            continue
 
-        evolution_result = evolution_optimizer.optimize(start_camera)
+        with shared_data["print_lock"]:
+            logger.info(
+                "ResultCode: [{}] {} ({}s)",
+                evolution_result.result_code,
+                strategy_bundle.name_identifier,
+                evolution_result.optimize_duration,
+            )
+        results.append(evolution_result)
 
-        result_camera = Camera.from_dna(evolution_result.best_result)
+    results_result_camera = []
+    results_fitting_geometry_result = []
+    results_dense_geometry_result = []
+    results_y0_geometry_result = []
+    results_n_generations = []
+    results_best_fitness = []
+
+    for result in results:
+        result_camera = Camera.from_dna(result.best_result)
 
         reprojection_errors = reprojection_error_multiple_geometries(
             target_camera, result_camera.dna, evaluation_geometries
@@ -117,30 +139,46 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
         dense_geometry_result = reprojection_errors[1]
         y0_geometry_result = reprojection_errors[2]
 
-        n_generations = evolution_result.n_generations
-        best_fitness = evolution_result.best_fitness
+        n_generations = result.n_generations
+        best_fitness = result.best_fitness
 
-        with shared_data["print_lock"]:
-            logger.info(
-                "ResultCode: [{}] {} ({}s)",
-                evolution_result.result_code,
-                strategy_bundle.name_identifier,
-                evolution_result.optimize_duration,
-            )
-        with shared_data["file_lock"]:
-            evolution_writer.save_experiment(
-                strategy_bundle,
-                amount,
-                start_camera,
-                target_camera,
-                result_camera,
-                noise_strategy,
-                fitting_geometry_result,
-                dense_geometry_result,
-                y0_geometry_result,
-                best_fitness,
-                n_generations,
-            )
+        results_result_camera.append(result_camera)
+
+        results_fitting_geometry_result.append(fitting_geometry_result)
+        results_dense_geometry_result.append(dense_geometry_result)
+        results_y0_geometry_result.append(y0_geometry_result)
+
+        results_n_generations.append(n_generations)
+        results_best_fitness.append(best_fitness)
+
+    with shared_data["file_lock"]:
+        evolution_writer.save_experiments(
+            strategy_bundle,
+            amount,
+            start_camera,
+            target_camera,
+            results_result_camera,
+            noise_strategy,
+            results_fitting_geometry_result,
+            results_dense_geometry_result,
+            results_y0_geometry_result,
+            results_best_fitness,
+            results_n_generations,
+        )
+        # with shared_data["file_lock"]:
+        #     evolution_writer.save_experiment(
+        #         strategy_bundle,
+        #         amount,
+        #         start_camera,
+        #         target_camera,
+        #         result_camera,
+        #         noise_strategy,
+        #         fitting_geometry_result,
+        #         dense_geometry_result,
+        #         y0_geometry_result,
+        #         best_fitness,
+        #         n_generations,
+        #     )
 
 
 def evaluate(image_shape: tuple[int, int],
@@ -184,7 +222,8 @@ def evaluate(image_shape: tuple[int, int],
         "evolution_writer": evolution_writer
     }
     start = time.perf_counter()
-    with Pool(processes=10, initializer=init, initargs=(shared,)) as pool:
+    n_processes = 10
+    with Pool(processes=n_processes, initializer=init, initargs=(shared,)) as pool:
         pool.starmap(_do_optimization, itertools.product(*arguments))  # itertools.product(*strategies))
     end = time.perf_counter()
 

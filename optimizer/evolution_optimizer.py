@@ -1,4 +1,3 @@
-import sys
 from timeit import default_timer as timer
 
 import cv2 as cv
@@ -6,7 +5,6 @@ import numpy as np
 from evolution.base import BaseGeometry
 from evolution.camera import CameraGenomeParameters, GeneticCameraAlgorithm
 from evolution.strategies import StrategyBundle
-from loguru import logger
 
 from cameras.cameras import Camera
 from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
@@ -50,9 +48,9 @@ class EvolutionOptimizer(Optimizer):
             start_time = timer()
             result_data = self._evolution.run(start_camera.dna)
             end_time = timer()
-        except ValueError as e:
-            logger.error(self._strategy_bundle.name_identifier)
-            sys.exit(f"Error evaluating {self._strategy_bundle.name_identifier}")
+        except ValueError:
+            duration_in_s = timer() - start_time
+            raise ValueError(f"Error evaluating {self._strategy_bundle.name_identifier} after {duration_in_s}s")
 
         duration_in_s = end_time - start_time
 
