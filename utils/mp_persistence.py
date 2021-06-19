@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from pathlib import Path
+from typing import List, Tuple
 
 import pandas as pd
 from evolution.strategies import StrategyBundle
@@ -47,7 +48,7 @@ class MPResultWriter(ABC):
         return True
 
     @abstractmethod
-    def _header(self) -> tuple[str]:
+    def _header(self) -> Tuple[str]:
         pass
 
     def _get_camera_header_with_prefix(self, prefix: str):
@@ -76,7 +77,7 @@ class MPResultWriter(ABC):
 
 
 class MPEvolutionResultWriter(MPResultWriter):
-    def _header(self) -> tuple[str]:
+    def _header(self) -> Tuple[str]:
         # region [Region0] Strategy + Noise Header
         strategy_columns = (
             "population_fn",
@@ -164,13 +165,13 @@ class MPEvolutionResultWriter(MPResultWriter):
             distance_amount: Amount,
             start_camera: Camera,
             target_camera: Camera,
-            results_result_camera: list[Camera],
+            results_result_camera: List[Camera],
             noise_strategy: NoiseStrategy,
-            results_fitting_result: list[ReprojectionErrorResult],
-            results_dense_result: list[ReprojectionErrorResult],
-            results_y0_result: list[ReprojectionErrorResult],
-            results_best_fitness: list[float],
-            results_generations: list[int]
+            results_fitting_result: List[ReprojectionErrorResult],
+            results_dense_result: List[ReprojectionErrorResult],
+            results_y0_result: List[ReprojectionErrorResult],
+            results_best_fitness: List[float],
+            results_generations: List[int]
     ):
         _data_df = self.load_dataframe(self._outfile)
 
@@ -239,7 +240,7 @@ class MPEvolutionResultWriter(MPResultWriter):
 
 
 class MPNloptResultWriter(MPResultWriter):
-    def _header(self) -> tuple[str]:
+    def _header(self) -> Tuple[str]:
         # region [Region0] Nlopt Specification + Noise Header
         nlopt_type = ("nlopt_optimizer", "distance_type")
         noise_columns = ("noise_type", "noise_value")

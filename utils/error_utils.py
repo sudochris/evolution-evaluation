@@ -62,5 +62,5 @@ def reprojection_error_multiple_geometries(
         camera_a: Union[Camera, np.array],
         camera_b: Union[Camera, np.array],
         geometries: List[BaseGeometry],
-) -> list[ReprojectionErrorResult]:
+) -> List[ReprojectionErrorResult]:
     return [reprojection_error(camera_a, camera_b, geometry) for geometry in geometries]

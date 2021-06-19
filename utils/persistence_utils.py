@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from pathlib import Path
+from typing import Tuple
 
 import pandas as pd
 from evolution.base import (
@@ -59,7 +60,7 @@ class ResultWriter(ABC):
         self._flush_counter = self._n_flush
 
     @abstractmethod
-    def _header(self) -> tuple[str]:
+    def _header(self) -> Tuple[str]:
         pass
 
     def _get_camera_header_with_prefix(self, prefix: str):
@@ -88,7 +89,7 @@ class ResultWriter(ABC):
 
 
 class EvolutionResultWriter(ResultWriter):
-    def _header(self) -> tuple[str]:
+    def _header(self) -> Tuple[str]:
         # region [Region0] Strategy + Noise Header
         strategy_columns = (
             "population_fn",
@@ -210,7 +211,7 @@ class EvolutionResultWriter(ResultWriter):
 
 
 class NloptResultWriter(ResultWriter):
-    def _header(self) -> tuple[str]:
+    def _header(self) -> Tuple[str]:
         # region [Region0] Nlopt Specification + Noise Header
         nlopt_type = ("nlopt_optimizer", "distance_type")
         noise_columns = ("noise_type", "noise_value")
