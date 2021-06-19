@@ -86,7 +86,7 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
                 f"Found {n_performed_experiments} experiments {delta} missing [{printable_experiment_string}] "
             )
     results = []
-
+    results_start_camera = []
     for _ in range(n_performed_experiments, _runs_per_bundle):
         start_camera = wiggle_camera(
             target_camera, amount, _wiggle_indices, _n_wiggles
@@ -121,6 +121,7 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
                 evolution_result.optimize_duration,
             )
         results.append(evolution_result)
+        results_start_camera.append(start_camera)
 
     results_result_camera = []
     results_fitting_geometry_result = []
@@ -156,7 +157,7 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
         evolution_writer.save_experiments(
             strategy_bundle,
             amount,
-            start_camera,
+            results_start_camera,
             target_camera,
             results_result_camera,
             noise_strategy,
@@ -166,20 +167,8 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
             results_best_fitness,
             results_n_generations,
         )
-        # with shared_data["file_lock"]:
-        #     evolution_writer.save_experiment(
-        #         strategy_bundle,
-        #         amount,
-        #         start_camera,
-        #         target_camera,
-        #         result_camera,
-        #         noise_strategy,
-        #         fitting_geometry_result,
-        #         dense_geometry_result,
-        #         y0_geometry_result,
-        #         best_fitness,
-        #         n_generations,
-        #     )
+    with shared_data["print_lock"]:
+        logger.info(f"Success {printable_experiment_string}")
 
 
 def evaluate(image_shape: Tuple[int, int],

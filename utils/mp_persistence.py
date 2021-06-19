@@ -163,7 +163,7 @@ class MPEvolutionResultWriter(MPResultWriter):
             self,
             strategy_bundle: StrategyBundle,
             distance_amount: Amount,
-            start_camera: Camera,
+            results_start_camera: List[Camera],
             target_camera: Camera,
             results_result_camera: List[Camera],
             noise_strategy: NoiseStrategy,
@@ -175,9 +175,9 @@ class MPEvolutionResultWriter(MPResultWriter):
     ):
         _data_df = self.load_dataframe(self._outfile)
 
-        for (result_camera, fitting_result, dense_result, y0_result, best_fitness, generations) in zip(
-                results_result_camera, results_fitting_result, results_dense_result, results_y0_result,
-                results_best_fitness, results_generations):
+        for (start_camera, result_camera, fitting_result, dense_result, y0_result, best_fitness, generations) in zip(
+                results_start_camera, results_result_camera, results_fitting_result, results_dense_result,
+                results_y0_result, results_best_fitness, results_generations):
             new_row = {
                 "population_fn": strategy_bundle.populate_strategy.printable_identifier(),
                 "fitness_fn": strategy_bundle.fitness_strategy.printable_identifier(),
