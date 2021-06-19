@@ -1,4 +1,5 @@
 import itertools
+from typing import List, Tuple
 
 import numpy as np
 from evolution.base import (
@@ -27,7 +28,7 @@ from utils.persistence_utils import EvolutionResultWriter
 class EvolutionEvaluator(Evaluator):
     def __init__(
             self,
-            image_shape: tuple[int, int],
+            image_shape: Tuple[int, int],
             genome_parameters: CameraGenomeParameters,
             output_file: str,
             append_mode: bool = True,
@@ -42,14 +43,14 @@ class EvolutionEvaluator(Evaluator):
     def evaluate(
             self,
             fitting_geometry: BaseGeometry,
-            amounts: list[Amount],
-            population_strategies: list[PopulateStrategy],
-            fitness_strategies: list[FitnessStrategy],
-            selection_strategies: list[SelectionStrategy],
-            crossover_strategies: list[CrossoverStrategy],
-            mutation_strategies: list[MutationStrategy],
-            termination_strategies: list[TerminationStrategy],
-            noise_strategies: list[NoiseStrategy],
+            amounts: List[Amount],
+            population_strategies: List[PopulateStrategy],
+            fitness_strategies: List[FitnessStrategy],
+            selection_strategies: List[SelectionStrategy],
+            crossover_strategies: List[CrossoverStrategy],
+            mutation_strategies: List[MutationStrategy],
+            termination_strategies: List[TerminationStrategy],
+            noise_strategies: List[NoiseStrategy],
             runs_per_bundle=32,
             headless=True,
     ):

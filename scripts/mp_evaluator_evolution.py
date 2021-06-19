@@ -1,6 +1,7 @@
 import itertools
 import time
 from multiprocessing import Pool, Lock
+from typing import List, Tuple
 
 import numpy as np
 from evolution.base import BaseGeometry, PopulateStrategy, FitnessStrategy, SelectionStrategy, CrossoverStrategy, \
@@ -24,7 +25,7 @@ def init(shared):
 
 
 def _construct_edge_image(
-        image_shape: tuple[int, int],
+        image_shape: Tuple[int, int],
         camera: Camera,
         fitting_geometry: BaseGeometry,
         noise_strategy: NoiseStrategy,
@@ -181,18 +182,18 @@ def _do_optimization(amount: Amount, population_strategy: PopulateStrategy,
         #     )
 
 
-def evaluate(image_shape: tuple[int, int],
+def evaluate(image_shape: Tuple[int, int],
              genome_parameters: CameraGenomeParameters,
              evolution_results_file: str,
              fitting_geometry: BaseGeometry,
-             amounts: list[Amount],
-             population_strategies: list[PopulateStrategy],
-             fitness_strategies: list[FitnessStrategy],
-             selection_strategies: list[SelectionStrategy],
-             crossover_strategies: list[CrossoverStrategy],
-             mutation_strategies: list[MutationStrategy],
-             termination_strategies: list[TerminationStrategy],
-             noise_strategies: list[NoiseStrategy],
+             amounts: List[Amount],
+             population_strategies: List[PopulateStrategy],
+             fitness_strategies: List[FitnessStrategy],
+             selection_strategies: List[SelectionStrategy],
+             crossover_strategies: List[CrossoverStrategy],
+             mutation_strategies: List[MutationStrategy],
+             termination_strategies: List[TerminationStrategy],
+             noise_strategies: List[NoiseStrategy],
              append_mode=False,
              headless=True):
     evolution_writer = MPEvolutionResultWriter(evolution_results_file, append_mode=append_mode)

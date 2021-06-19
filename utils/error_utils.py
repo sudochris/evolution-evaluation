@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 from evolution.base import BaseGeometry
@@ -61,6 +61,6 @@ def reprojection_error(
 def reprojection_error_multiple_geometries(
         camera_a: Union[Camera, np.array],
         camera_b: Union[Camera, np.array],
-        geometries: list[BaseGeometry],
+        geometries: List[BaseGeometry],
 ) -> list[ReprojectionErrorResult]:
     return [reprojection_error(camera_a, camera_b, geometry) for geometry in geometries]

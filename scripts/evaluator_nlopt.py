@@ -1,4 +1,5 @@
 import itertools
+from typing import List, Tuple
 
 from evolution.base import FitnessStrategy
 from evolution.base.base_geometry import BaseGeometry, DenseGeometry, PlaneGeometry
@@ -16,7 +17,7 @@ from utils.persistence_utils import NloptResultWriter
 class NloptEvaluator(Evaluator):
     def __init__(
             self,
-            image_shape: tuple[int, int],
+            image_shape: Tuple[int, int],
             genome_parameters: CameraGenomeParameters,
             output_file: str,
             append_mode: bool = True,
@@ -30,10 +31,10 @@ class NloptEvaluator(Evaluator):
     def evaluate(
             self,
             fitting_geometry: BaseGeometry,
-            amounts: list[Amount],
-            fitness_strategies: list[FitnessStrategy],
-            nlopt_algorithms: list[NloptAlgorithm],
-            noise_strategies: list[NoiseStrategy],
+            amounts: List[Amount],
+            fitness_strategies: List[FitnessStrategy],
+            nlopt_algorithms: List[NloptAlgorithm],
+            noise_strategies: List[NoiseStrategy],
             runs_per_bundle: int = 32,
             headless: bool = True,
     ):

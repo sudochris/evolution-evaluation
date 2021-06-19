@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 from evolution.base.base_geometry import BaseGeometry
 from evolution.camera import (
@@ -12,7 +14,7 @@ from utils.transform_utils import split_dna
 
 
 class Evaluator:
-    def __init__(self, image_shape: tuple[int, int], genome_parameters: CameraGenomeParameters):
+    def __init__(self, image_shape: Tuple[int, int], genome_parameters: CameraGenomeParameters):
         super().__init__()
         self._image_shape = image_shape
 
@@ -24,7 +26,7 @@ class Evaluator:
 
     def _construct_edge_image(
             self,
-            image_shape: tuple[int, int],
+            image_shape: Tuple[int, int],
             camera: Camera,
             fitting_geometry: BaseGeometry,
             noise_strategy: NoiseStrategy,
