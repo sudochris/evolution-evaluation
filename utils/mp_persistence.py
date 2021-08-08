@@ -4,10 +4,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 import pandas as pd
+from evolution.base import FitnessStrategy
 from evolution.strategies import StrategyBundle
 from loguru import logger
 
 from cameras.cameras import Amount, Camera
+from optimizer.nlopt_optimizer import NloptAlgorithm
 from utils.error_utils import ReprojectionErrorResult
 from utils.exceptions import InvalidHeader
 from utils.noise_utils import NoiseStrategy
@@ -69,10 +71,20 @@ class MPResultWriter(ABC):
     def _get_geometry_header_width_infix(self, infix: str):
         return (f"mean_{infix}_reproj_error_col", f"mean_{infix}_reproj_error_row")
 
+    def _get_geometry_header_width_infix_full(self, infix: str):
+        return (f"mean_{infix}_reproj_error_col", f"mean_{infix}_reproj_error_row", f"mean_{infix}_reproj_error")
+
     def _construct_geometry_entries(self, infix: str, result: ReprojectionErrorResult) -> dict:
         return {
             f"mean_{infix}_reproj_error_col": result.mean_col_error,
             f"mean_{infix}_reproj_error_row": result.mean_row_error,
+        }
+
+    def _construct_geometry_entries_full(self, infix: str, result: ReprojectionErrorResult) -> dict:
+        return {
+            f"mean_{infix}_reproj_error_col": result.mean_col_error,
+            f"mean_{infix}_reproj_error_row": result.mean_row_error,
+            f"mean_{infix}_reproj_error": result.mean_error,
         }
 
 
@@ -242,7 +254,10 @@ class MPEvolutionResultWriter(MPResultWriter):
 class MPNloptResultWriter(MPResultWriter):
     def _header(self) -> Tuple[str]:
         # region [Region0] Nlopt Specification + Noise Header
-        nlopt_type = ("nlopt_optimizer", "distance_type")
+        nlopt_type = ("nlopt_optimizer",
+                      "fitness_fn",
+                      "distance_type")
+
         noise_columns = ("noise_type", "noise_value")
         # endregion
 
@@ -257,9 +272,9 @@ class MPNloptResultWriter(MPResultWriter):
         # endregion
 
         # region [Region3] Result for various geometries
-        fitting_geometry_result = self._get_geometry_header_width_infix("fitting")
-        dense_geometry_result = self._get_geometry_header_width_infix("dense")
-        y0_geometry_result = self._get_geometry_header_width_infix("y0")
+        fitting_geometry_result = self._get_geometry_header_width_infix_full("fitting")
+        dense_geometry_result = self._get_geometry_header_width_infix_full("dense")
+        y0_geometry_result = self._get_geometry_header_width_infix_full("y0")
         results_geometries = fitting_geometry_result + dense_geometry_result + y0_geometry_result
         # endregion
 
@@ -276,9 +291,51 @@ class MPNloptResultWriter(MPResultWriter):
         # endregion
         return full_columns
 
+    def save_experiments(
+            self,
+            algorithm_name: str,
+            fitness_strategy: FitnessStrategy,
+            distance_amount: Amount,
+            results_start_camera: List[Camera],
+            target_camera: Camera,
+            results_result_camera: List[Camera],
+            noise_strategy: NoiseStrategy,
+            results_fitting_result: List[ReprojectionErrorResult],
+            results_dense_result: List[ReprojectionErrorResult],
+            results_y0_result: List[ReprojectionErrorResult],
+            results_best_fitness: List[float],
+            results_duration_in_s: List[float]
+    ):
+        _data_df = self.load_dataframe(self._outfile)
+
+        for (start_camera, result_camera, fitting_result, dense_result, y0_result, best_fitness, duration_in_s) in zip(
+                results_start_camera, results_result_camera, results_fitting_result, results_dense_result,
+                results_y0_result, results_best_fitness, results_duration_in_s):
+            new_row = {
+                "nlopt_optimizer": algorithm_name,
+                "fitness_fn": fitness_strategy.printable_identifier(),
+                "distance_type": distance_amount.name,
+                "noise_type": noise_strategy.printable_identifier(),
+                "noise_value": noise_strategy.get_value(),
+                "best_fitness": best_fitness,
+                "duration_in_s": duration_in_s
+            }
+
+            new_row.update(self._construct_camera_entries("s", start_camera))
+            new_row.update(self._construct_camera_entries("t", target_camera))
+            new_row.update(self._construct_camera_entries("r", result_camera))
+
+            new_row.update(self._construct_geometry_entries_full("fitting", fitting_result))
+            new_row.update(self._construct_geometry_entries_full("dense", dense_result))
+            new_row.update(self._construct_geometry_entries_full("y0", y0_result))
+            _data_df = _data_df.append(new_row, ignore_index=True)
+
+        _data_df.to_csv(self._outfile, index=False)
+
     def save_experiment(
             self,
             nlopt_optimizer: str,
+            fitness_strategy: FitnessStrategy,
             distance_amount: Amount,
             start_camera: Camera,
             target_camera: Camera,
@@ -292,6 +349,7 @@ class MPNloptResultWriter(MPResultWriter):
     ):
         new_row = {
             "nlopt_optimizer": nlopt_optimizer,
+            "fitness_fn": fitness_strategy.printable_identifier(),
             "distance_type": distance_amount.name,
             "noise_type": noise_strategy.printable_identifier(),
             "noise_value": noise_strategy.get_value(),
@@ -309,16 +367,21 @@ class MPNloptResultWriter(MPResultWriter):
 
         self._save_experiment(new_row)
 
-    def has(self, amount: Amount, optimizer_name: str, noise_strategy: NoiseStrategy):
+    def has(self, amount: Amount, optimizer: NloptAlgorithm, fitness_strategy: FitnessStrategy,
+            noise_strategy: NoiseStrategy):
         _data_df = self.load_dataframe(self._outfile)
 
         distance_type_filter = _data_df["distance_type"] == amount.name
-        nlopt_optimizer_filter = _data_df["nlopt_optimizer"] == optimizer_name
+        nlopt_optimizer_filter = _data_df["nlopt_optimizer"] == optimizer.display_name
+
+        fitness_filter = _data_df["fitness_fn"] == fitness_strategy.printable_identifier()
+
         noise_type_filter = _data_df["noise_type"] == noise_strategy.printable_identifier()
         noise_value_filter = _data_df["noise_value"] == noise_strategy.get_value()
         return len(
             self.load_dataframe(self._outfile)[
                 distance_type_filter
+                & fitness_filter
                 & nlopt_optimizer_filter
                 & noise_type_filter
                 & noise_value_filter])

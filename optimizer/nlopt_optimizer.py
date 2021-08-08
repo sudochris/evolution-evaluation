@@ -22,9 +22,14 @@ class NloptAlgorithm:
 
 class NloptAlgorithms:
     L_SBPLX = NloptAlgorithm("L_SBPLX", nlopt.LN_SBPLX, False)
+    L_NELDER = NloptAlgorithm("L_NELDER", nlopt.LN_NELDERMEAD, False)
     L_COBYLA = NloptAlgorithm("L_COBYLA", nlopt.LN_COBYLA, False)
-    G_CRS = NloptAlgorithm("G_CRS", nlopt.GN_CRS2_LM, True)
-    G_DIRECT_L = NloptAlgorithm("G_CRS", nlopt.GN_DIRECT_L_RAND, True)
+
+    G_ISRES = NloptAlgorithm("G_ISRES", nlopt.GN_ISRES, True, L_SBPLX)
+
+    G_CRS = NloptAlgorithm("G_CRS", nlopt.GN_CRS2_LM, True, L_SBPLX)
+    G_DIRECT_L = NloptAlgorithm("G_DIRECT_L", nlopt.GN_DIRECT_L_RAND, True, L_SBPLX)
+    G_ESCH = NloptAlgorithm("G_ESCH", nlopt.GN_ESCH, True, L_SBPLX)
 
 
 class NloptOptimizer(Optimizer):
@@ -42,6 +47,7 @@ class NloptOptimizer(Optimizer):
         _OPTIMIZER_ALGO = nlopt_algorithm.value
         _LOCAL_OPTIMIZER_ALGO = nlopt.LN_NELDERMEAD
         _needs_local_optimizer = nlopt_algorithm.local_optimizer is not None
+
         _needs_bounds = nlopt_algorithm.needs_bounds
         self._optimizer = nlopt.opt(_OPTIMIZER_ALGO, _N_CAMERA_PARAMETERS)
 
@@ -75,13 +81,14 @@ class NloptOptimizer(Optimizer):
         self._optimizer.set_max_objective(evo_fitness_fn)
 
         # logger.warning("MAX TIME IS SET TO 2!")
-        self._optimizer.set_maxtime(20)
+        # self._optimizer.set_maxtime(20)
+        self._optimizer.set_maxeval(10000)
 
         if _needs_bounds:
             logger.warning("Enabled bounds")
             self._optimizer.set_lower_bounds(
                 [500, 500, 200, 100,
-                 -3.2, 0.0, 0.0,
+                 -3.2, 0.1, 1.0,
                  0.0, -0.2, -0.2,
                  -0.5, -0.5, -0.2, -0.1, -3.0]
             )

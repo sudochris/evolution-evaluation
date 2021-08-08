@@ -20,9 +20,9 @@ from evolution.strategies import (
 from loguru import logger
 
 import scripts.mp_evaluator_evolution as mp_evolution
+import scripts.mp_evaluator_nlopt as mp_nlopt
 from cameras.cameras import Amount
 from optimizer.nlopt_optimizer import NloptAlgorithms
-from scripts.evaluator_nlopt import NloptEvaluator
 from utils.noise_utils import GridNoise, HLinesNoise, VLinesNoise, NoNoise, SaltNoise
 
 # endregion
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     parameters_file = "data/squash/parameters.json"
     geometry_file = "data/squash/geometries/squash_court.obj"
     evolution_results_file = "results/mp_evolution_experiments.csv"
-    nlopt_results_file = "results/nlopt_experiments_dev.csv.dev"
+    nlopt_results_file = "results/mp_nlopt_experiments.csv"
 
     image_shape = (600, 800)
     genome_parameters = CameraGenomeParameters(parameters_file, image_shape)
@@ -83,18 +83,7 @@ if __name__ == "__main__":
     ]
     # endregion
 
-    np.set_printoptions(formatter={'float': '{:0.3f}'.format}, linewidth=np.inf)
-    print("Min: {}".format(mutation_strategies[0].mutation_min))
-    print("Max: {}".format(mutation_strategies[0].mutation_max))
-    print("P  : {}".format(mutation_strategies[0].mutation_probability))
-    print("=======")
-
-    print("Min: {}".format(mutation_strategies[1].mutation_min))
-    print("Max: {}".format(mutation_strategies[1].mutation_max))
-    print("P  : {}".format(mutation_strategies[1].mutation_probability))
-    print("D  : {}".format(mutation_strategies[1].distributions))
-
-    run_evolution, run_nlopt = True, False
+    run_evolution, run_nlopt = False, True
     # region [Region3] Perform Evolution experiments
     if run_evolution:
         # Run multiprocessing evolution
@@ -105,19 +94,10 @@ if __name__ == "__main__":
     # endregion
 
     # region [Region4] Perform Nlopt experiments
-    nlopt_algorithms = [NloptAlgorithms.G_DIRECT_L]
+    nlopt_algorithms = [NloptAlgorithms.L_SBPLX, NloptAlgorithms.G_DIRECT_L]
 
     if run_nlopt:
-        nlopt_evaluator = NloptEvaluator(
-            image_shape, genome_parameters, nlopt_results_file, append_mode=True
-        )
-        nlopt_evaluator.evaluate(
-            fitting_geometry,
-            amounts,
-            fitness_strategies,
-            nlopt_algorithms,
-            noise_strategies,
-            runs_per_bundle=32,
-            headless=False,
-        )
+        mp_nlopt.evaluate(image_shape,
+                          genome_parameters, nlopt_results_file, fitting_geometry, amounts, fitness_strategies,
+                          nlopt_algorithms, noise_strategies, append_mode=True, headless=True)
     # endregion
