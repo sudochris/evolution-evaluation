@@ -7,9 +7,9 @@ import numpy as np
 from evolution.base import BaseGeometry, FitnessStrategy
 from evolution.camera import render_geometry_with_camera
 from loguru import logger
+from utils.transform_utils import split_dna
 
 from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
-from utils.transform_utils import split_dna
 
 
 @dataclass
@@ -22,20 +22,18 @@ class NloptAlgorithm:
 
 class NloptAlgorithms:
     L_SBPLX = NloptAlgorithm("L_SBPLX", nlopt.LN_SBPLX, False)
-    L_COBYLA = NloptAlgorithm("L_COBYLA", nlopt.LN_COBYLA, False)
-    G_CRS = NloptAlgorithm("G_CRS", nlopt.GN_CRS2_LM, True)
-    G_DIRECT_L = NloptAlgorithm("G_CRS", nlopt.GN_DIRECT_L_RAND, True)
+    G_DIRECT_L = NloptAlgorithm("G_DIRECT_L", nlopt.GN_DIRECT_L, True)
 
 
 class NloptOptimizer(Optimizer):
     def __init__(
-            self,
-            fitness_strategy: FitnessStrategy,
-            edge_image: np.array,
-            start_dna: np.array,
-            geometry: BaseGeometry,
-            nlopt_algorithm: NloptAlgorithm,
-            headless: bool = True,
+        self,
+        fitness_strategy: FitnessStrategy,
+        edge_image: np.array,
+        start_dna: np.array,
+        geometry: BaseGeometry,
+        nlopt_algorithm: NloptAlgorithm,
+        headless: bool = True,
     ):
         super().__init__()
         _N_CAMERA_PARAMETERS = 15  # TODO: Derive from len(start_genome)
@@ -80,16 +78,10 @@ class NloptOptimizer(Optimizer):
         if _needs_bounds:
             logger.warning("Enabled bounds")
             self._optimizer.set_lower_bounds(
-                [500, 500, 200, 100,
-                 -3.2, 0.0, 0.0,
-                 0.0, -0.2, -0.2,
-                 -0.5, -0.5, -0.2, -0.1, -3.0]
+                [500, 500, 200, 100, -3.2, 0.0, 0.0, 0.0, -0.2, -0.2, -0.5, -0.5, -0.2, -0.1, -3.0]
             )
             self._optimizer.set_upper_bounds(
-                [900, 900, 600, 500,
-                 3.2, 8.0, 10.0,
-                 0.5, 0.2, 0.2,
-                 0.5, 0.5, 0.2, 0.1, 3.0]
+                [900, 900, 600, 500, 3.2, 8.0, 10.0, 0.5, 0.2, 0.2, 0.5, 0.5, 0.2, 0.1, 3.0]
             )
 
         if _needs_local_optimizer:
@@ -116,7 +108,7 @@ class NloptOptimizer(Optimizer):
         }.get(value, OptimizerResultCode.UNKNOWN)
 
     def optimize(self) -> OptimizerResult:
-        logger.debug("Running nlopt optimizer")
+        # logger.debug("Running nlopt optimizer")
 
         start_time = timer()
         result_data = self._optimizer.optimize(self._start_dna.astype(np.float64))

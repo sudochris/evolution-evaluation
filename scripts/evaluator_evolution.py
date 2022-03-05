@@ -1,37 +1,36 @@
 import itertools
-from collections import Callable
+from typing import Callable
 
 import numpy as np
+from cameras.cameras import Amount, Camera, wiggle_camera
 from evolution.base import (
     BaseGeometry,
     CrossoverStrategy,
     FitnessStrategy,
     MutationStrategy,
+    PopulateStrategy,
     SelectionStrategy,
-    TerminationStrategy, PopulateStrategy,
+    TerminationStrategy,
 )
 from evolution.base.base_geometry import DenseGeometry, PlaneGeometry
-from evolution.camera import (
-    CameraGenomeParameters,
-)
+from evolution.camera import CameraGenomeParameters
 from evolution.strategies import StrategyBundle
 from loguru import logger
-
-from cameras.cameras import Amount, Camera, wiggle_camera
 from optimizer.evolution_optimizer import EvolutionOptimizer
-from scripts.evaluator_base import Evaluator
 from utils.error_utils import reprojection_error_multiple_geometries
 from utils.noise_utils import NoiseStrategy
 from utils.persistence_utils import EvolutionResultWriter
 
+from scripts.evaluator_base import Evaluator
+
 
 class EvolutionEvaluator(Evaluator):
     def __init__(
-            self,
-            image_shape: tuple[int, int],
-            genome_parameters: CameraGenomeParameters,
-            output_file: str,
-            append_mode: bool = True,
+        self,
+        image_shape: tuple[int, int],
+        genome_parameters: CameraGenomeParameters,
+        output_file: str,
+        append_mode: bool = True,
     ):
         super().__init__(image_shape, genome_parameters)
 
@@ -40,18 +39,18 @@ class EvolutionEvaluator(Evaluator):
         )
 
     def evaluate(
-            self,
-            fitting_geometry: BaseGeometry,
-            amounts: list[Amount],
-            population_strategies: list[Callable[[np.array], PopulateStrategy]],
-            fitness_strategies: list[FitnessStrategy],
-            selection_strategies: list[SelectionStrategy],
-            crossover_strategies: list[CrossoverStrategy],
-            mutation_strategies: list[MutationStrategy],
-            termination_strategies: list[TerminationStrategy],
-            noise_strategies: list[NoiseStrategy],
-            runs_per_bundle=32,
-            headless=True,
+        self,
+        fitting_geometry: BaseGeometry,
+        amounts: list[Amount],
+        population_strategies: list[Callable[[np.array], PopulateStrategy]],
+        fitness_strategies: list[FitnessStrategy],
+        selection_strategies: list[SelectionStrategy],
+        crossover_strategies: list[CrossoverStrategy],
+        mutation_strategies: list[MutationStrategy],
+        termination_strategies: list[TerminationStrategy],
+        noise_strategies: list[NoiseStrategy],
+        runs_per_bundle=32,
+        headless=True,
     ):
         geometry_dense = DenseGeometry(fitting_geometry, 16)
         geometry_y0 = PlaneGeometry(fitting_geometry, 0, 16)
@@ -68,14 +67,14 @@ class EvolutionEvaluator(Evaluator):
             noise_strategies,
         ]
         for (
-                amount,
-                population_strategy,
-                fitness_strategy,
-                selection_strategy,
-                crossover_strategy,
-                mutation_strategy,
-                termination_strategy,
-                noise_strategy,
+            amount,
+            population_strategy,
+            fitness_strategy,
+            selection_strategy,
+            crossover_strategy,
+            mutation_strategy,
+            termination_strategy,
+            noise_strategy,
         ) in itertools.product(*strategies):
             the_population_strategy = population_strategy(np.zeros(15))
             n_performed_experiments = self._evolution_writer.has(
@@ -88,13 +87,15 @@ class EvolutionEvaluator(Evaluator):
                 noise_strategy,
             )
             if n_performed_experiments > 0:
-                printable_experiment_string = "{} {} {} {} {} {} {}".format(amount.name,
-                                                                            the_population_strategy.printable_identifier(),
-                                                                            fitness_strategy.printable_identifier(),
-                                                                            selection_strategy.printable_identifier(),
-                                                                            crossover_strategy.printable_identifier(),
-                                                                            mutation_strategy.printable_identifier(),
-                                                                            noise_strategy.printable_identifier())
+                printable_experiment_string = "{} {} {} {} {} {} {}".format(
+                    amount.name,
+                    the_population_strategy.printable_identifier(),
+                    fitness_strategy.printable_identifier(),
+                    selection_strategy.printable_identifier(),
+                    crossover_strategy.printable_identifier(),
+                    mutation_strategy.printable_identifier(),
+                    noise_strategy.printable_identifier(),
+                )
                 delta = runs_per_bundle - n_performed_experiments
                 logger.info(
                     f"Found {n_performed_experiments} experiments {delta} missing [{printable_experiment_string}] "
@@ -128,7 +129,7 @@ class EvolutionEvaluator(Evaluator):
                     headless,
                 )
 
-                evolution_result = evolution_optimizer.optimize()
+                evolution_result = evolution_optimizer.optimize(start_camera.dna)
                 logger.info(
                     "ResultCode: [{}] {} ({}s)",
                     evolution_result.result_code,

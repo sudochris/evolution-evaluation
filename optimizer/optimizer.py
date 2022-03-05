@@ -37,7 +37,7 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
-    def optimize(self) -> OptimizerResult:
+    def optimize(self, start_dna) -> OptimizerResult:
         raise NotImplementedError("Currently not implemented")
 
     @abstractmethod

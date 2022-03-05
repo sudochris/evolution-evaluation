@@ -13,19 +13,20 @@ from optimizer.optimizer import Optimizer, OptimizerResult, OptimizerResultCode
 
 class EvolutionOptimizer(Optimizer):
     def __init__(
-            self,
-            strategy_bundle: StrategyBundle,
-            genome_parameters: CameraGenomeParameters,
-            edge_image: np.array,
-            geometry: BaseGeometry,
-            headless: bool = True,
+        self,
+        strategy_bundle: StrategyBundle,
+        genome_parameters: CameraGenomeParameters,
+        edge_image: np.array,
+        geometry: BaseGeometry,
+        headless: bool = True,
     ):
         super().__init__()
         self._strategy_bundle = strategy_bundle
         self._evolution = GeneticCameraAlgorithm(
             genome_parameters, strategy_bundle, edge_image, geometry, headless
         )
-        cv.imshow("TMP", self._evolution._fitness_map)
+        if not headless:
+            cv.imshow("TMP", self._evolution._fitness_map)
 
     def map_result_code(self, value) -> OptimizerResultCode:
         return {
@@ -42,11 +43,11 @@ class EvolutionOptimizer(Optimizer):
             -5: OptimizerResultCode.FORCED_STOP,
         }.get(value, OptimizerResultCode.UNKNOWN)
 
-    def optimize(self):
+    def optimize(self, start_dna):
         # logger.debug("Running evolution optimizer")
         try:
             start_time = timer()
-            result_data = self._evolution.run()
+            result_data = self._evolution.run(start_dna)
             end_time = timer()
         except ValueError as e:
             logger.error(self._strategy_bundle.name_identifier)
@@ -54,7 +55,6 @@ class EvolutionOptimizer(Optimizer):
 
         duration_in_s = end_time - start_time
 
-        logger.warning("Evolution result code is always SUCCESS!")
         mapped_result_code = self.map_result_code(0)
 
         best_genome, best_fitness = result_data.best_genome

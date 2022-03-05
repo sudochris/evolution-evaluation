@@ -2,6 +2,7 @@
 **/__pycache__/
 .idea/
 .vscode/vscode-kanban.json
+.vscode/
 
 *.bak
 *.log

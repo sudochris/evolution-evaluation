@@ -16,7 +16,6 @@
             "source.organizeImports": true
         }
     },
-    "python.pythonPath": "/home/chris/Development/virtualenvironments/evolution-evaluation/bin/python",
     "python.languageServer": "Jedi",
     "python.formatting.provider": "black",
     "editor.rulers": [
